@@ -1,0 +1,7 @@
+/.env.local
+/.next
+/.vscode
+/Branded Invoice.zip
+/node_modules
+/Private
+/supabase

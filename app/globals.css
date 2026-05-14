@@ -1,0 +1,202 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 207 55% 6%;
+    --foreground: 210 40% 98%;
+    --card: 207 45% 8%;
+    --card-foreground: 210 40% 98%;
+    --popover: 207 45% 8%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 78 92% 66%;
+    --primary-foreground: 207 55% 6%;
+    --secondary: 194 90% 61%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 207 35% 14%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 194 90% 61%;
+    --radius: 0.75rem;
+  }
+
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 84% 4.9%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 47.6%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Cairo', system-ui, sans-serif;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--foreground));
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.light .glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Invoice preview styles */
+.invoice-preview {
+  background: white;
+  color: #1a1a1a;
+}
+
+.light .invoice-preview {
+  background: white;
+}
+
+/* Print styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #invoice-print-root,
+  #invoice-print-root *,
+  #invoice-print-area,
+  #invoice-print-area * {
+    visibility: visible;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #invoice-print-root,
+  #invoice-print-area {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0;
+    background: white;
+    box-shadow: none !important;
+  }
+
+  #invoice-print-root {
+    display: block !important;
+  }
+
+  #invoice-print-root #invoice-print-area {
+    transform: none !important;
+    transform-origin: top left !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}
+
+/* Skeleton loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted-foreground) / 0.3) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* A4 Preview container */
+.a4-container {
+  aspect-ratio: 210 / 297;
+  width: 100%;
+  max-width: 595px;
+}
+
+/* Invoice themes typography */
+.invoice-theme-classic {
+  font-family: 'Georgia', serif;
+}
+
+.invoice-theme-modern {
+  font-family: 'Cairo', sans-serif;
+}
+
+.invoice-theme-minimal {
+  font-family: 'Arial', sans-serif;
+}
+
+.invoice-theme-agency {
+  font-family: 'Helvetica Neue', sans-serif;
+}
+
+.invoice-theme-retail {
+  font-family: 'Courier New', monospace;
+}
+
+.invoice-theme-arabic {
+  font-family: 'Amiri', 'Traditional Arabic', serif;
+  direction: rtl;
+}
