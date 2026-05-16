@@ -16,6 +16,7 @@ import { ClientsTable } from '@/components/clients/ClientsTable'
 import { ClientForm } from '@/components/clients/ClientForm'
 import { EmptyState, ListPageSkeleton } from '@/components/common/EmptyState'
 import { createClient } from '@/lib/supabase/client'
+import { useDashboard } from '@/components/dashboard/DashboardContext'
 import { getSupabaseErrorMessage } from '@/lib/utils/supabase-errors'
 import { toast } from 'sonner'
 
@@ -26,6 +27,7 @@ export default function ClientsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingClient, setEditingClient] = useState(null)
   const supabase = createClient()
+  const { user } = useDashboard()
 
   useEffect(() => {
     fetchClients()
@@ -34,8 +36,6 @@ export default function ClientsPage() {
   const fetchClients = async () => {
     setLoading(true)
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      if (userError) throw userError
       if (!user) throw new Error('لازم تسجل دخول الأول')
 
       const { data, error } = await supabase

@@ -6,9 +6,9 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "dev": "set HTTP_PROXY=& set HTTPS_PROXY=& set ALL_PROXY=& set GIT_HTTP_PROXY=& set GIT_HTTPS_PROXY=& next dev",
-    "build": "set HTTP_PROXY=& set HTTPS_PROXY=& set ALL_PROXY=& set GIT_HTTP_PROXY=& set GIT_HTTPS_PROXY=& next build",
-    "start": "set HTTP_PROXY=& set HTTPS_PROXY=& set ALL_PROXY=& set GIT_HTTP_PROXY=& set GIT_HTTPS_PROXY=& next start"
+    "dev": "next dev --webpack",
+    "build": "next build",
+    "start": "next start"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

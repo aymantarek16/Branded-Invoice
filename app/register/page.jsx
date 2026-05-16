@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
 import { ArrowLeft, Eye, EyeOff, FileText, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -74,7 +73,6 @@ export default function RegisterPage() {
 
       toast.success('تم إنشاء الحساب')
       router.replace('/dashboard')
-      router.refresh()
     } catch (error) {
       toast.error(getRegisterErrorMessage(error))
     } finally {
@@ -92,7 +90,7 @@ export default function RegisterPage() {
           <span className="text-xl font-black">فاتورتي</span>
         </Link>
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+        <div>
           <h1 className="text-4xl font-black">حساب جديد</h1>
           <p className="mt-3 text-slate-400">اكتب بياناتك وابدأ استخدام الداشبورد.</p>
 
@@ -177,7 +175,7 @@ export default function RegisterPage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </p>
-        </motion.div>
+        </div>
       </div>
     </main>
   )

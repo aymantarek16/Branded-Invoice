@@ -105,13 +105,11 @@ export function BrandSettingsForm({ brand, onSuccess }) {
 
       if (uploadError) throw uploadError
 
-      const { data: signedData, error: signedError } = await supabase.storage
+      const { data: publicData } = supabase.storage
         .from('brand-assets')
-        .createSignedUrl(filePath, 60 * 60 * 24 * 365)
+        .getPublicUrl(filePath)
 
-      if (signedError) throw signedError
-
-      setValue('logo_url', signedData.signedUrl)
+      setValue('logo_url', publicData.publicUrl)
       toast.success('اللوجو اترفع')
     } catch (error) {
       toast.error(error.message || 'معرفناش نرفع اللوجو')
@@ -139,13 +137,16 @@ export function BrandSettingsForm({ brand, onSuccess }) {
     setLoading(true)
     try {
       if (brand?.id) {
-        const { error } = await supabase
+        const { data: savedBrand, error } = await supabase
           .from('brand_profiles')
           .update(data)
           .eq('id', brand.id)
+          .select()
+          .single()
 
         if (error) throw error
         toast.success('بيانات البراند اتحدثت')
+        onSuccess?.(savedBrand)
       } else {
         const {
           data: { user },
@@ -155,17 +156,17 @@ export function BrandSettingsForm({ brand, onSuccess }) {
         if (userError) throw userError
         if (!user) throw new Error('لازم تسجل دخول الأول')
 
-        const { error } = await supabase.from('brand_profiles').insert([
+        const { data: savedBrand, error } = await supabase.from('brand_profiles').insert([
           {
             ...data,
             user_id: user.id,
           },
-        ])
+        ]).select().single()
 
         if (error) throw error
         toast.success('بيانات البراند اتعملت')
+        onSuccess?.(savedBrand)
       }
-      onSuccess?.()
     } catch (error) {
       toast.error(error.message || 'معرفناش نحفظ بيانات البراند')
     } finally {

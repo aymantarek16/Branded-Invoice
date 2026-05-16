@@ -51,7 +51,7 @@ brand-assets
 لو هتعمله يدويًا من Supabase Storage:
 
 - الاسم: `brand-assets`
-- Public: `false`
+- Public: `true`
 - ارفع ملفات كل مستخدم داخل فولدر يبدأ بـ user id الخاص به.
 
 ## التشغيل محليًا

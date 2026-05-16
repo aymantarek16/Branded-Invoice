@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
 import { ArrowLeft, Eye, EyeOff, FileText, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -43,8 +42,7 @@ export default function LoginPage() {
       if (error) throw error
 
       toast.success('تم تسجيل الدخول')
-      router.push('/dashboard')
-      router.refresh()
+      router.replace('/dashboard')
     } catch (error) {
       toast.error(getLoginErrorMessage(error))
     } finally {
@@ -62,7 +60,7 @@ export default function LoginPage() {
           <span className="text-xl font-black">فاتورتي</span>
         </Link>
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+        <div>
           <h1 className="text-4xl font-black">تسجيل دخول</h1>
           <p className="mt-3 text-slate-400">ادخل على حسابك وكمل فواتيرك.</p>
 
@@ -119,7 +117,7 @@ export default function LoginPage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </p>
-        </motion.div>
+        </div>
       </div>
     </main>
   )

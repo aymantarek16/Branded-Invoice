@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { AppSidebar } from '@/components/layout/AppSidebar'
 import { MobileNav } from '@/components/layout/MobileNav'
 import { createClient } from '@/lib/supabase/client'
+import { DashboardProvider } from '@/components/dashboard/DashboardContext'
 import { DashboardPageSkeleton } from '@/components/common/EmptyState'
 
 export default function DashboardLayout({ children }) {
@@ -16,10 +17,13 @@ export default function DashboardLayout({ children }) {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const user = session?.user || null
 
       if (!user) {
-        router.push('/login')
+        router.replace('/login')
         return
       }
 
@@ -27,7 +31,7 @@ export default function DashboardLayout({ children }) {
 
       const { data: brandData } = await supabase
         .from('brand_profiles')
-        .select('brand_name, logo_url')
+        .select('*')
         .eq('user_id', user.id)
         .maybeSingle()
 
@@ -39,7 +43,7 @@ export default function DashboardLayout({ children }) {
   }, [supabase, router])
 
   const handleLogout = () => {
-    router.push('/login')
+    router.replace('/login')
   }
 
   if (loading) {
@@ -55,21 +59,23 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <AppSidebar
-        user={user}
-        brand={brand}
-        onLogout={handleLogout}
-      />
-      <MobileNav user={user} brand={brand} />
+    <DashboardProvider value={{ user, brand, setBrand }}>
+      <div className="min-h-screen bg-background">
+        <AppSidebar
+          user={user}
+          brand={brand}
+          onLogout={handleLogout}
+        />
+        <MobileNav user={user} brand={brand} />
 
-      <main
-        className="min-w-0 overflow-x-hidden pt-16 lg:pt-0 lg:pr-[280px]"
-      >
-        <div className="p-4 lg:p-8">
-          {children}
-        </div>
-      </main>
-    </div>
+        <main
+          className="min-w-0 overflow-x-hidden pt-16 lg:pt-0 lg:pr-[280px]"
+        >
+          <div className="p-4 lg:p-8">
+            {children}
+          </div>
+        </main>
+      </div>
+    </DashboardProvider>
   )
 }

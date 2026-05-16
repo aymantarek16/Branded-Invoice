@@ -1,7 +1,4 @@
-'use client'
-
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import {
   ArrowLeft,
   FileText,
@@ -76,7 +73,7 @@ export default function HomePage() {
       </header>
 
       <section className="mx-auto grid max-w-6xl gap-10 px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-[1fr_.85fr] lg:items-center lg:pt-20">
-        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+        <div>
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[.04] px-4 py-2 text-sm font-bold text-slate-300">
             <LayoutDashboard className="h-4 w-4 text-lime-300" />
             لوحة بسيطة لإدارة الفواتير
@@ -105,14 +102,9 @@ export default function HomePage() {
               عندي حساب
             </Link>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 18, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.08 }}
-          className="rounded-[2rem] border border-white/10 bg-white/[.05] p-4"
-        >
+        <div className="rounded-[2rem] border border-white/10 bg-white/[.05] p-4">
           <div className="rounded-[1.5rem] bg-white p-6 text-slate-950">
             <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-5">
               <div>
@@ -142,18 +134,14 @@ export default function HomePage() {
               <p className="mt-1 font-black">صدّر PDF أو PNG</p>
             </div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {actions.map((item, index) => (
-            <motion.div
+          {actions.map((item) => (
+            <div
               key={item.title}
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.04 }}
               className="rounded-3xl border border-white/10 bg-white/[.04] p-5"
             >
               <div className="mb-4 grid h-11 w-11 place-items-center rounded-2xl bg-lime-300 text-slate-950">
@@ -161,7 +149,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-lg font-black">{item.title}</h3>
               <p className="mt-2 leading-7 text-slate-400">{item.text}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </section>

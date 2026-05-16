@@ -62,7 +62,7 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
           .select('invoice_number')
           .order('created_at', { ascending: false })
           .limit(1)
-          .single()
+          .maybeSingle()
 
         const nextNumber = getNextInvoiceNumber(data?.invoice_number)
         setFormData(prev => ({ ...prev, invoice_number: nextNumber }))
@@ -152,15 +152,28 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
           }
         })
 
+      if (!formData.invoice_number?.trim()) {
+        throw new Error('رقم الفاتورة مطلوب')
+      }
+
+      if (!normalizedClientData?.name) {
+        throw new Error('اسم العميل مطلوب')
+      }
+
+      if (normalizedItems.length === 0) {
+        throw new Error('ضيف بند واحد على الأقل في الفاتورة')
+      }
+
       const invoiceData = {
         ...formData,
+        invoice_number: formData.invoice_number.trim(),
         client_id: formData.client_id || null,
         user_id: user.id,
         status,
         subtotal: totals.subtotal,
         discount_total: totals.discountTotal,
         tax_total: totals.taxTotal,
-        shipping_total: formData.shipping_total,
+        shipping_total: totals.shippingTotal,
         grand_total: totals.grandTotal,
         client_snapshot: normalizedClientData,
         brand_snapshot: brandData,
@@ -176,7 +189,13 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
         if (error) throw error
 
         // Update items
-        await supabase.from('invoice_items').delete().eq('invoice_id', invoice.id)
+        const { error: deleteItemsError } = await supabase
+          .from('invoice_items')
+          .delete()
+          .eq('invoice_id', invoice.id)
+
+        if (deleteItemsError) throw deleteItemsError
+
         if (normalizedItems.length > 0) {
           const itemsData = normalizedItems.map((item) => ({
             invoice_id: invoice.id,

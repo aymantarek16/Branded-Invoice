@@ -36,6 +36,7 @@ import { InvoiceStatusBadge } from '@/components/invoices/InvoiceStatusBadge'
 import { EmptyState, ListPageSkeleton } from '@/components/common/EmptyState'
 import { DeleteConfirmDialog } from '@/components/common/ConfirmDialog'
 import { createClient } from '@/lib/supabase/client'
+import { useDashboard } from '@/components/dashboard/DashboardContext'
 import { formatCurrency } from '@/lib/utils/currency'
 import { formatDateShort } from '@/lib/utils/dates'
 import { getNextInvoiceNumber } from '@/lib/utils/invoice-number'
@@ -59,6 +60,7 @@ export default function InvoicesPage() {
   const [deleting, setDeleting] = useState(false)
   const supabase = createClient()
   const router = useRouter()
+  const { user } = useDashboard()
 
   useEffect(() => {
     fetchInvoices()
@@ -67,8 +69,6 @@ export default function InvoicesPage() {
   const fetchInvoices = async () => {
     setLoading(true)
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      if (userError) throw userError
       if (!user) throw new Error('لازم تسجل دخول الأول')
 
       const { data, error } = await supabase

@@ -39,23 +39,27 @@ export default function InvoiceViewPage() {
   useEffect(() => {
     const fetchInvoice = async () => {
       try {
-        const { data: invoiceData, error: invoiceError } = await supabase
-          .from('invoices')
-          .select('*')
-          .eq('id', params.id)
-          .single()
+        const [
+          { data: invoiceData, error: invoiceError },
+          { data: itemsData, error: itemsError },
+        ] = await Promise.all([
+          supabase
+            .from('invoices')
+            .select('*')
+            .eq('id', params.id)
+            .single(),
+          supabase
+            .from('invoice_items')
+            .select('*')
+            .eq('invoice_id', params.id)
+            .order('sort_order'),
+        ])
 
         if (invoiceError) throw invoiceError
         if (!invoiceData) {
           router.push('/dashboard/invoices')
           return
         }
-
-        const { data: itemsData, error: itemsError } = await supabase
-          .from('invoice_items')
-          .select('*')
-          .eq('invoice_id', params.id)
-          .order('sort_order')
 
         if (itemsError) throw itemsError
 

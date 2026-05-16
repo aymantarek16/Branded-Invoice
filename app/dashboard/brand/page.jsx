@@ -4,45 +4,28 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { BrandSettingsForm } from '@/components/brand/BrandSettingsForm'
 import { FormPageSkeleton } from '@/components/common/EmptyState'
-import { createClient } from '@/lib/supabase/client'
-import { toast } from 'sonner'
+import { useDashboard } from '@/components/dashboard/DashboardContext'
 
 export default function BrandPage() {
   const [loading, setLoading] = useState(true)
   const [brand, setBrand] = useState(null)
-  const supabase = createClient()
+  const { user, brand: dashboardBrand, setBrand: setDashboardBrand } = useDashboard()
 
   useEffect(() => {
-    const fetchBrand = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-
-        const { data, error } = await supabase
-          .from('brand_profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single()
-
-        if (error && error.code !== 'PGRST116') {
-          throw error
-        }
-
-        setBrand(data || { user_id: user.id, brand_name: '', default_currency: 'EGP' })
-      } catch {
-        setBrand({ brand_name: '', default_currency: 'EGP' })
-      } finally {
-        setLoading(false)
+    setBrand(
+      dashboardBrand || {
+        user_id: user?.id,
+        brand_name: '',
+        default_currency: 'EGP',
       }
-    }
+    )
+    setLoading(false)
+  }, [dashboardBrand, user?.id])
 
-    fetchBrand()
-  }, [supabase])
-
-  const handleSuccess = () => {
-    toast.success('بيانات البراند اتحفظت')
-    // Refresh brand data
-    window.location.reload()
+  const handleSuccess = (savedBrand) => {
+    if (!savedBrand) return
+    setBrand(savedBrand)
+    setDashboardBrand(savedBrand)
   }
 
   if (loading) {

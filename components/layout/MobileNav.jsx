@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard,
@@ -30,6 +30,7 @@ const navItems = [
 export function MobileNav({ user, brand }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
   const displayName =
     brand?.brand_name ||
     user?.user_metadata?.full_name ||
@@ -45,6 +46,12 @@ export function MobileNav({ user, brand }) {
     return pathname === href || pathname?.startsWith(`${href}/`)
   }
 
+  const prefetchRoute = (href) => {
+    if (href !== pathname) {
+      router.prefetch(href)
+    }
+  }
+
   return (
     <>
       {/* Top Bar */}
@@ -56,7 +63,11 @@ export function MobileNav({ user, brand }) {
           <span className="font-bold">فاتورتي</span>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/dashboard/invoices/new">
+          <Link
+            href="/dashboard/invoices/new"
+            onMouseEnter={() => prefetchRoute('/dashboard/invoices/new')}
+            onFocus={() => prefetchRoute('/dashboard/invoices/new')}
+          >
             <Button size="sm" className="gap-2">
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">فاتورة جديدة</span>
@@ -121,6 +132,8 @@ export function MobileNav({ user, brand }) {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onMouseEnter={() => prefetchRoute(item.href)}
+                    onFocus={() => prefetchRoute(item.href)}
                     onClick={() => setOpen(false)}
                     className={cn(
                       'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200',

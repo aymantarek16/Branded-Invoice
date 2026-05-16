@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FormPageSkeleton } from '@/components/common/EmptyState'
 import { CURRENCY_LIST } from '@/lib/utils/currency'
 import { createClient } from '@/lib/supabase/client'
+import { useDashboard } from '@/components/dashboard/DashboardContext'
 import { toast } from 'sonner'
 
 const THEMES = [
@@ -33,35 +34,14 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
   const router = useRouter()
+  const { user, brand, setBrand } = useDashboard()
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-
-        // Load settings from localStorage
-        const savedLanguage = localStorage.getItem('language') || 'en'
-        setLanguage(savedLanguage)
-
-        // Fetch brand to get default currency
-        const { data: brand } = await supabase
-          .from('brand_profiles')
-          .select('default_currency')
-          .eq('user_id', user.id)
-          .single()
-
-        if (brand?.default_currency) {
-          setDefaultCurrency(brand.default_currency)
-        }
-      } catch {
-      } finally {
-        setPageLoading(false)
-      }
-    }
-
-    fetchSettings()
-  }, [supabase])
+    const savedLanguage = localStorage.getItem('language') || 'en'
+    setLanguage(savedLanguage)
+    setDefaultCurrency(brand?.default_currency || 'EGP')
+    setPageLoading(false)
+  }, [brand?.default_currency])
 
   const handleLanguageChange = (value) => {
     setLanguage(value)
@@ -72,23 +52,19 @@ export default function SettingsPage() {
   const handleCurrencyChange = async (value) => {
     setLoading(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const { data: brand } = await supabase
-        .from('brand_profiles')
-        .select('id, brand_name, email')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
       if (brand) {
-        const { error } = await supabase
+        const { data: savedBrand, error } = await supabase
           .from('brand_profiles')
           .update({ default_currency: value })
           .eq('id', brand.id)
+          .select()
+          .single()
         if (error) throw error
+        setBrand(savedBrand)
       } else {
-        const { error } = await supabase
+        const { data: savedBrand, error } = await supabase
           .from('brand_profiles')
           .insert([{
             user_id: user.id,
@@ -96,7 +72,10 @@ export default function SettingsPage() {
             email: user.email,
             default_currency: value,
           }])
+          .select()
+          .single()
         if (error) throw error
+        setBrand(savedBrand)
       }
 
       setDefaultCurrency(value)
@@ -110,8 +89,7 @@ export default function SettingsPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
+    router.replace('/login')
   }
 
   if (pageLoading) {

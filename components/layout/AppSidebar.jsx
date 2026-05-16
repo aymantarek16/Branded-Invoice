@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   Building2,
   FileText,
@@ -25,6 +25,7 @@ const navItems = [
 
 export function AppSidebar({ user, brand, onLogout }) {
   const pathname = usePathname()
+  const router = useRouter()
   const supabase = createClient()
   const displayName =
     brand?.brand_name ||
@@ -46,10 +47,21 @@ export function AppSidebar({ user, brand, onLogout }) {
     onLogout?.()
   }
 
+  const prefetchRoute = (href) => {
+    if (href !== pathname) {
+      router.prefetch(href)
+    }
+  }
+
   return (
     <aside className="fixed right-0 top-0 z-40 hidden h-screen w-[280px] flex-col border-l border-border bg-card lg:flex">
       <div className="flex h-16 items-center border-b border-border px-4">
-        <Link href="/dashboard" className="flex min-w-0 items-center gap-3">
+        <Link
+          href="/dashboard"
+          onMouseEnter={() => prefetchRoute('/dashboard')}
+          onFocus={() => prefetchRoute('/dashboard')}
+          className="flex min-w-0 items-center gap-3"
+        >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/60">
             <FileText className="h-5 w-5 text-primary-foreground" />
           </div>
@@ -66,6 +78,8 @@ export function AppSidebar({ user, brand, onLogout }) {
             <Link
               key={item.href}
               href={item.href}
+              onMouseEnter={() => prefetchRoute(item.href)}
+              onFocus={() => prefetchRoute(item.href)}
               className={cn(
                 'flex items-center gap-3 rounded-xl px-4 py-3 transition-colors',
                 isActive

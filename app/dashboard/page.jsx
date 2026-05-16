@@ -8,7 +8,6 @@ import {
   DollarSign,
   TrendingUp,
   Clock,
-  AlertCircle,
   Plus,
   ArrowRight,
 } from 'lucide-react'
@@ -17,6 +16,7 @@ import { RevenueChart } from '@/components/dashboard/RevenueChart'
 import { RecentInvoices } from '@/components/dashboard/RecentInvoices'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
+import { useDashboard } from '@/components/dashboard/DashboardContext'
 import { DashboardPageSkeleton } from '@/components/common/EmptyState'
 
 export default function DashboardPage() {
@@ -32,18 +32,12 @@ export default function DashboardPage() {
   const [invoices, setInvoices] = useState([])
   const [currency, setCurrency] = useState('EGP')
   const supabase = createClient()
+  const { user, brand } = useDashboard()
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
-
-        const { data: brand } = await supabase
-          .from('brand_profiles')
-          .select('default_currency')
-          .eq('user_id', user.id)
-          .maybeSingle()
 
         setCurrency(brand?.default_currency || 'EGP')
 
@@ -80,7 +74,7 @@ export default function DashboardPage() {
     }
 
     fetchData()
-  }, [supabase])
+  }, [brand?.default_currency, supabase, user])
 
   if (loading) {
     return <DashboardPageSkeleton />
@@ -130,10 +124,10 @@ export default function DashboardPage() {
 
       {/* Charts & Recent Invoices */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+        <div className="min-w-0 lg:col-span-2">
           <RevenueChart data={invoices} currency={currency} />
         </div>
-        <div className="lg:col-span-1">
+        <div className="min-w-0 lg:col-span-1">
           <RecentInvoices invoices={recentInvoices} currency={currency} />
         </div>
       </div>
