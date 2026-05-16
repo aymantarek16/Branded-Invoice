@@ -1,6 +1,7 @@
 import { GeistSans } from 'geist/font/sans'
 import { Toaster } from '@/components/ui/toaster'
 import { ThemeProvider } from '@/components/theme-provider'
+import { ConsoleNoiseFilter } from '@/components/common/ConsoleNoiseFilter'
 import './globals.css'
 
 export const metadata = {
@@ -18,6 +19,7 @@ export default function RootLayout({ children }) {
           enableSystem
           disableTransitionOnChange
         >
+          <ConsoleNoiseFilter />
           {children}
           <Toaster />
         </ThemeProvider>
