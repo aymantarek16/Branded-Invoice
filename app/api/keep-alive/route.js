@@ -4,10 +4,10 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    const supabaseKey = serviceRoleKey || anonKey;
+    const supabaseKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json(
@@ -15,8 +15,7 @@ export async function GET() {
           ok: false,
           message: "Missing Supabase environment variables",
           hasUrl: Boolean(supabaseUrl),
-          hasServiceRole: Boolean(serviceRoleKey),
-          hasAnonKey: Boolean(anonKey),
+          hasKey: Boolean(supabaseKey),
         },
         { status: 500 }
       );
@@ -24,20 +23,15 @@ export async function GET() {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { error } = await supabase
-      .from("invoices")
-      .select("id")
-      .limit(1);
+    const { data, error } = await supabase.rpc(
+      "keep_branded_invoice_alive"
+    );
 
     if (error) {
       return NextResponse.json(
         {
           ok: false,
           message: "Supabase ping failed",
-          table: "invoices",
-          usingKey: serviceRoleKey ? "service_role" : "anon",
-          hasServiceRole: Boolean(serviceRoleKey),
-          hasAnonKey: Boolean(anonKey),
           error: error.message,
         },
         { status: 500 }
@@ -47,8 +41,7 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       message: "Branded Invoice is alive",
-      table: "invoices",
-      usingKey: serviceRoleKey ? "service_role" : "anon",
+      data,
       time: new Date().toISOString(),
     });
   } catch (error) {
