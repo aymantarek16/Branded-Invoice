@@ -40,7 +40,7 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
-      message: "Branded Invoice is alive",
+      message: "Hi Ayman, Branded Invoice is alive",
       data,
       time: new Date().toISOString(),
     });
