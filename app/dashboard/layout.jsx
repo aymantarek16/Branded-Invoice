@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }) {
   }, [supabase, router])
 
   const handleLogout = () => {
-    router.replace('/login')
+    router.replace('/')
   }
 
   if (loading) {

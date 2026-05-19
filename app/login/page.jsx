@@ -110,13 +110,13 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-7 text-center text-sm text-slate-400">
+          {/* <p className="mt-7 text-center text-sm text-slate-400">
             معندكش حساب؟{' '}
             <Link href="/register" className="inline-flex items-center gap-1 font-black text-lime-200 hover:underline">
               اعمل حساب
               <ArrowLeft className="h-4 w-4" />
             </Link>
-          </p>
+          </p> */}
         </div>
       </div>
     </main>
