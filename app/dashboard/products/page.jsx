@@ -36,7 +36,7 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     setLoading(true)
     try {
-      if (!user) throw new Error('لازم تسجل دخول الأول')
+      if (!user) throw new Error('يجب تسجيل الدخول أولاً.')
 
       const { data, error } = await supabase
         .from('products')
@@ -47,7 +47,7 @@ export default function ProductsPage() {
       if (error) throw error
       setProducts(data || [])
     } catch (error) {
-      toast.error(getSupabaseErrorMessage(error, 'معرفناش نجيب المنتجات'))
+      toast.error(getSupabaseErrorMessage(error, 'تعذر تحميل المنتجات.'))
       setProducts([])
     } finally {
       setLoading(false)
@@ -90,7 +90,7 @@ export default function ProductsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">المنتجات والخدمات</h1>
-          <p className="text-muted-foreground">احفظ الخدمات والأسعار اللي بتستخدمها كتير</p>
+          <p className="text-muted-foreground">احفظ الخدمات والأسعار التي تستخدمها كثيرًا</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -118,7 +118,7 @@ export default function ProductsPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="دور على منتج أو خدمة..."
+          placeholder="ابحث عن منتج أو خدمة..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -129,15 +129,15 @@ export default function ProductsPage() {
       {products.length === 0 ? (
         <EmptyState
           icon="package"
-          title="لسه مفيش منتجات"
-          description="ضيف أول خدمة أو منتج عشان تختاره بسرعة في الفاتورة"
+          title="لا توجد منتجات حتى الآن"
+          description="أضف أول خدمة أو منتج لاختياره بسرعة داخل الفاتورة."
           actionLabel="إضافة منتج"
           onAction={handleAddProduct}
         />
       ) : filteredProducts.length === 0 ? (
         <EmptyState
           icon="package"
-          title="مفيش نتائج"
+          title="لا توجد نتائج"
           description="جرّب كلمة بحث مختلفة"
         />
       ) : (

@@ -14,7 +14,7 @@ import { toast } from 'sonner'
 
 const clientSchema = z.object({
   name: z.string().min(1, 'اسم العميل مطلوب'),
-  email: z.string().email('الإيميل مش صحيح').optional().or(z.literal('')),
+  email: z.string().email('البريد الإلكتروني غير صحيح.').optional().or(z.literal('')),
   phone: z.string().optional(),
   address: z.string().optional(),
   company_name: z.string().optional(),
@@ -50,7 +50,7 @@ export function ClientForm({ client, onSuccess, onCancel }) {
       } = await supabase.auth.getUser()
 
       if (userError) throw userError
-      if (!user) throw new Error('لازم تسجل دخول الأول')
+      if (!user) throw new Error('يجب تسجيل الدخول أولاً.')
 
       if (client?.id) {
         const { error } = await supabase
@@ -60,7 +60,7 @@ export function ClientForm({ client, onSuccess, onCancel }) {
           .eq('user_id', user.id)
 
         if (error) throw error
-        toast.success('بيانات العميل اتحدثت')
+        toast.success('تم تحديث بيانات العميل.')
       } else {
         const { error } = await supabase.from('clients').insert([
           {
@@ -70,11 +70,11 @@ export function ClientForm({ client, onSuccess, onCancel }) {
         ])
 
         if (error) throw error
-        toast.success('العميل اتضاف')
+        toast.success('تمت إضافة العميل.')
       }
       onSuccess?.()
     } catch (error) {
-      toast.error(getSupabaseErrorMessage(error, 'معرفناش نحفظ العميل'))
+      toast.error(getSupabaseErrorMessage(error, 'تعذر حفظ العميل.'))
     } finally {
       setLoading(false)
     }

@@ -23,10 +23,12 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     totalInvoices: 0,
-    totalRevenue: 0,
+    paidTotal: 0,
+    pendingTotal: 0,
     paidInvoices: 0,
-    unpaidInvoices: 0,
-    overdueInvoices: 0,
+    pendingInvoices: 0,
+    draftInvoices: 0,
+    cancelledInvoices: 0,
   })
   const [recentInvoices, setRecentInvoices] = useState([])
   const [invoices, setInvoices] = useState([])
@@ -53,15 +55,18 @@ export default function DashboardPage() {
         // Calculate stats
         const invoices = invoicesData || []
         const paid = invoices.filter(i => i.status === 'paid')
-        const unpaid = invoices.filter(i => ['sent', 'draft'].includes(i.status))
-        const overdue = invoices.filter(i => i.status === 'overdue')
+        const pending = invoices.filter(i => i.status === 'sent')
+        const drafts = invoices.filter(i => i.status === 'draft')
+        const cancelled = invoices.filter(i => i.status === 'cancelled')
 
         setStats({
           totalInvoices: invoices.length,
-          totalRevenue: paid.reduce((sum, i) => sum + (Number(i.grand_total) || 0), 0),
+          paidTotal: paid.reduce((sum, i) => sum + (Number(i.grand_total) || 0), 0),
+          pendingTotal: pending.reduce((sum, i) => sum + (Number(i.remaining_amount || i.grand_total) || 0), 0),
           paidInvoices: paid.length,
-          unpaidInvoices: unpaid.length,
-          overdueInvoices: overdue.length,
+          pendingInvoices: pending.length,
+          draftInvoices: drafts.length,
+          cancelledInvoices: cancelled.length,
         })
 
         setRecentInvoices(invoices.slice(0, 5))
@@ -86,7 +91,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">الرئيسية</h1>
-          <p className="text-muted-foreground">نظرة سريعة على الفواتير والمبيعات</p>
+          <p className="text-muted-foreground">نظرة سريعة على الفواتير والإيرادات المحصلة</p>
         </div>
         <Link href="/dashboard/invoices/new">
           <Button className="gap-2">
@@ -99,25 +104,27 @@ export default function DashboardPage() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
-          title="كل الفواتير"
+          title="إجمالي الفواتير"
           value={stats.totalInvoices}
           icon={FileText}
         />
         <StatsCard
           title="إجمالي المدفوع"
-          value={stats.totalRevenue}
+          value={stats.paidTotal}
           icon={DollarSign}
           format="currency"
           currency={currency}
         />
         <StatsCard
-          title="فواتير مدفوعة"
-          value={stats.paidInvoices}
+          title="إجمالي المستحق"
+          value={stats.pendingTotal}
           icon={TrendingUp}
+          format="currency"
+          currency={currency}
         />
         <StatsCard
-          title="غير مدفوع"
-          value={stats.unpaidInvoices + stats.overdueInvoices}
+          title="مسودات / ملغاة"
+          value={`${stats.draftInvoices} / ${stats.cancelledInvoices}`}
           icon={Clock}
         />
       </div>
@@ -145,7 +152,7 @@ export default function DashboardPage() {
                 <Plus className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold">اعمل فاتورة</h3>
+                <h3 className="font-semibold">إنشاء فاتورة</h3>
                 <p className="text-sm text-muted-foreground">ابدأ فاتورة جديدة</p>
               </div>
               <ArrowRight className="w-5 h-5 ml-auto text-muted-foreground" />
@@ -165,7 +172,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <h3 className="font-semibold">العملاء</h3>
-                <p className="text-sm text-muted-foreground">شوف وعدّل بيانات العملاء</p>
+                <p className="text-sm text-muted-foreground">عرض وتعديل بيانات العملاء</p>
               </div>
               <ArrowRight className="w-5 h-5 ml-auto text-muted-foreground" />
             </div>
@@ -184,7 +191,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <h3 className="font-semibold">البراند</h3>
-                <p className="text-sm text-muted-foreground">ظبط بيانات شركتك</p>
+                <p className="text-sm text-muted-foreground">تعديل بيانات شركتك</p>
               </div>
               <ArrowRight className="w-5 h-5 ml-auto text-muted-foreground" />
             </div>

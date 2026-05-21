@@ -28,6 +28,7 @@ export function ClientPicker({
   selectedClientId = '',
   onQuickNameChange,
   onSelectClient,
+  disabled = false,
 }) {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef(null)
@@ -63,16 +64,19 @@ export function ClientPicker({
   }, [])
 
   const handleInputChange = (event) => {
+    if (disabled) return
     onQuickNameChange?.(event.target.value)
     setOpen(true)
   }
 
   const handleSelectClient = (clientId) => {
+    if (disabled) return
     onSelectClient?.(clientId)
     setOpen(false)
   }
 
   const handleClear = () => {
+    if (disabled) return
     onQuickNameChange?.('')
     setOpen(false)
   }
@@ -85,10 +89,11 @@ export function ClientPicker({
           id="client_name"
           value={value}
           onChange={handleInputChange}
-          onFocus={() => setOpen(true)}
+          onFocus={() => !disabled && setOpen(true)}
           placeholder="اكتب اسم العميل أو اختاره من العملاء"
           className="h-12 pr-11 pl-24"
           autoComplete="off"
+          disabled={disabled}
         />
 
         <div className="absolute left-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
@@ -100,6 +105,7 @@ export function ClientPicker({
               onClick={handleClear}
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
               aria-label="مسح اسم العميل"
+              disabled={disabled}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -119,7 +125,7 @@ export function ClientPicker({
         </div>
       </div>
 
-      {open && (
+      {open && !disabled && (
         <div className="absolute z-40 mt-2 w-full overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-xl">
           {clients.length > 0 && filteredClients.length > 0 && (
             <div className="max-h-72 overflow-auto p-1">
@@ -153,20 +159,20 @@ export function ClientPicker({
             <div className="border-t border-border px-4 py-3 text-sm">
               <p className="font-semibold">استخدام "{value.trim()}" كاسم سريع</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                الاسم هيتحفظ داخل الفاتورة فقط، ومش هيتضاف لقائمة العملاء.
+                سيُحفظ الاسم داخل الفاتورة فقط، ولن يضاف إلى قائمة العملاء.
               </p>
             </div>
           )}
 
           {clients.length === 0 && (
             <div className="px-4 py-3 text-sm text-muted-foreground">
-              اكتب اسم العميل مباشرة. لما تضيف عملاء من قسم العملاء هيظهروا هنا.
+              اكتب اسم العميل مباشرة. عند إضافة عملاء من قسم العملاء سيظهرون هنا.
             </div>
           )}
 
           {clients.length > 0 && filteredClients.length === 0 && query && (
             <div className="px-4 py-3 text-sm text-muted-foreground">
-              مفيش عميل محفوظ مطابق. الاسم الحالي هيتعامل كاسم سريع.
+              لا يوجد عميل محفوظ مطابق. سيستخدم الاسم الحالي كاسم سريع.
             </div>
           )}
         </div>

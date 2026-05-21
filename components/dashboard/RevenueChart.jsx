@@ -65,8 +65,8 @@ export function RevenueChart({ data, currency = 'EGP' }) {
     <div className="bg-card rounded-2xl border border-border p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold">نظرة على الإيرادات</h3>
-          <p className="text-sm text-muted-foreground">متابعة شهرية بسيطة للمدفوع</p>
+          <h3 className="text-lg font-semibold">الإيرادات المحصلة</h3>
+          <p className="text-sm text-muted-foreground">متابعة شهرية للفواتير المدفوعة فقط</p>
         </div>
       </div>
 

@@ -25,6 +25,9 @@ export function StatsCard({
     if (format === 'percentage') {
       return `${value}%`
     }
+    if (typeof value === 'string') {
+      return value
+    }
     return (Number(value) || 0).toLocaleString()
   }
 

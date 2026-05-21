@@ -9,6 +9,7 @@ import { MinimalBlackWhite } from '@/components/invoice-themes/MinimalBlackWhite
 import { AgencyCreative } from '@/components/invoice-themes/AgencyCreative'
 import { RetailReceipt } from '@/components/invoice-themes/RetailReceipt'
 import { ElegantArabicRTL } from '@/components/invoice-themes/ElegantArabicRTL'
+import { calculateTotalsFromInvoice } from '@/lib/utils/invoice-calculations'
 
 const themeComponents = {
   'classic-professional': ClassicProfessional,
@@ -37,13 +38,30 @@ export const InvoicePreview = forwardRef(function InvoicePreview({
     contentHeight: 842,
   })
 
-  const invoiceData = useMemo(() => ({
-    brand,
-    client,
-    items,
-    invoice,
-    currency: invoice?.currency || brand?.default_currency || 'EGP',
-  }), [brand, client, items, invoice])
+  const invoiceData = useMemo(() => {
+    const totals = calculateTotalsFromInvoice(invoice, items)
+    const taxEnabled = invoice?.tax_enabled ?? (Number(invoice?.tax_rate || invoice?.tax_total) > 0)
+    const invoiceWithTotals = {
+      ...invoice,
+      tax_enabled: taxEnabled,
+      subtotal: totals.subtotal,
+      discount_total: totals.discountTotal,
+      tax_total: totals.taxTotal,
+      shipping_total: totals.shippingTotal,
+      grand_total: totals.grandTotal,
+      paid_amount: invoice?.status === 'paid' ? totals.grandTotal : totals.paidAmount,
+      remaining_amount: invoice?.status === 'paid' ? 0 : totals.remainingAmount,
+    }
+
+    return {
+      brand,
+      client,
+      items,
+      invoice: invoiceWithTotals,
+      totals,
+      currency: invoice?.currency || brand?.default_currency || 'EGP',
+    }
+  }, [brand, client, items, invoice])
 
   const setPageRefs = useCallback((node) => {
     pageRef.current = node
@@ -138,6 +156,7 @@ export const InvoicePreview = forwardRef(function InvoicePreview({
           <div
             ref={setPageRefs}
             id="invoice-print-area"
+            data-invoice-export-area="true"
             className="invoice-export-area overflow-hidden rounded-lg bg-white break-words [overflow-wrap:anywhere]"
             style={{
               width: `${pageWidth}px`,

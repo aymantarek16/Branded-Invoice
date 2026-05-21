@@ -14,7 +14,7 @@ const icons = {
 
 export function EmptyState({
   icon = 'inbox',
-  title = 'مفيش بيانات',
+  title = 'لا توجد بيانات',
   description = 'ابدأ بإضافة أول عنصر.',
   actionLabel = 'إضافة جديد',
   onAction,

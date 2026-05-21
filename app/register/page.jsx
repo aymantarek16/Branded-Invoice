@@ -12,10 +12,10 @@ import { toast } from 'sonner'
 
 function getRegisterErrorMessage(error) {
   if (error?.message === 'Failed to fetch' || error instanceof TypeError) {
-    return 'مش قادرين نوصل لـ Supabase. اتأكد إن رابط Supabase والمفتاح صح، واعمل Refresh للصفحة.'
+    return 'تعذر الاتصال بـ Supabase. تأكد من صحة رابط Supabase والمفتاح ثم حدّث الصفحة.'
   }
 
-  return error?.message || 'معرفناش نعمل الحساب'
+  return error?.message || 'تعذر إنشاء الحساب.'
 }
 
 export default function RegisterPage() {
@@ -38,12 +38,12 @@ export default function RegisterPage() {
     e.preventDefault()
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error('الباسوردين مش زي بعض')
+      toast.error('كلمتا المرور غير متطابقتين.')
       return
     }
 
     if (formData.password.length < 6) {
-      toast.error('الباسورد لازم يبقى ٦ حروف على الأقل')
+      toast.error('يجب أن تتكون كلمة المرور من ٦ أحرف على الأقل.')
       return
     }
 
@@ -92,7 +92,7 @@ export default function RegisterPage() {
 
         <div>
           <h1 className="text-4xl font-black">حساب جديد</h1>
-          <p className="mt-3 text-slate-400">اكتب بياناتك وابدأ استخدام الداشبورد.</p>
+          <p className="mt-3 text-slate-400">أدخل بياناتك وابدأ استخدام لوحة التحكم.</p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div>
@@ -124,7 +124,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <Label htmlFor="password">الباسورد</Label>
+              <Label htmlFor="password">كلمة المرور</Label>
               <div className="relative mt-2">
                 <Input
                   id="password"
@@ -141,7 +141,7 @@ export default function RegisterPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-                  aria-label={showPassword ? 'إخفاء الباسورد' : 'إظهار الباسورد'}
+                  aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -149,7 +149,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <Label htmlFor="confirmPassword">تأكيد الباسورد</Label>
+              <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"

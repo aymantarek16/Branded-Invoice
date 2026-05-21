@@ -23,7 +23,7 @@ const THEMES = [
 
 const LANGUAGES = [
   { value: 'en', label: 'English' },
-  { value: 'ar', label: 'العربية المصرية' },
+  { value: 'ar', label: 'العربية' },
 ]
 
 export default function SettingsPage() {
@@ -46,7 +46,7 @@ export default function SettingsPage() {
   const handleLanguageChange = (value) => {
     setLanguage(value)
     localStorage.setItem('language', value)
-    toast.success('اللغة اتحدثت')
+    toast.success('تم تحديث اللغة.')
   }
 
   const handleCurrencyChange = async (value) => {
@@ -79,9 +79,9 @@ export default function SettingsPage() {
       }
 
       setDefaultCurrency(value)
-      toast.success('العملة الافتراضية اتحدثت')
+      toast.success('تم تحديث العملة الافتراضية.')
     } catch (error) {
-      toast.error('معرفناش نحدّث العملة')
+      toast.error('تعذر تحديث العملة.')
     } finally {
       setLoading(false)
     }
@@ -101,7 +101,7 @@ export default function SettingsPage() {
     <div className="max-w-2xl space-y-6">
       <div>
         <h1 className="text-3xl font-bold">الإعدادات</h1>
-        <p className="text-muted-foreground">ظبط تفضيلاتك بسرعة</p>
+        <p className="text-muted-foreground">إدارة تفضيلات التطبيق الأساسية</p>
       </div>
 
       {/* Appearance */}
@@ -111,7 +111,7 @@ export default function SettingsPage() {
             <Sun className="w-5 h-5" />
             الشكل
           </CardTitle>
-          <CardDescription>اختار شكل الداشبورد المريح ليك</CardDescription>
+          <CardDescription>اختر شكل لوحة التحكم المناسب لك</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -143,7 +143,7 @@ export default function SettingsPage() {
             <Globe className="w-5 h-5" />
             اللغة
           </CardTitle>
-          <CardDescription>اختار لغة الواجهة</CardDescription>
+          <CardDescription>اختر لغة الواجهة</CardDescription>
         </CardHeader>
         <CardContent>
           <Select value={language} onValueChange={handleLanguageChange}>
@@ -168,7 +168,7 @@ export default function SettingsPage() {
             <CreditCard className="w-5 h-5" />
             العملة الافتراضية
           </CardTitle>
-          <CardDescription>العملة اللي هتظهر تلقائيًا في الفواتير الجديدة</CardDescription>
+          <CardDescription>العملة التي ستظهر تلقائيًا في الفواتير الجديدة</CardDescription>
         </CardHeader>
         <CardContent>
           <Select value={defaultCurrency} onValueChange={handleCurrencyChange} disabled={loading}>
@@ -184,6 +184,16 @@ export default function SettingsPage() {
             </SelectContent>
           </Select>
         </CardContent>
+      </Card>
+
+      {/* Tax Notice */}
+      <Card>
+        <CardHeader>
+          <CardTitle>تنويه ضريبي</CardTitle>
+          <CardDescription>
+            هذا النظام مخصص لتنظيم وتصميم وتصدير وطباعة الفواتير فقط، وليس نظام ربط ضريبي رسمي.
+          </CardDescription>
+        </CardHeader>
       </Card>
 
       {/* Account */}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Save, Send } from 'lucide-react'
+import { Ban, CheckCircle2, FileCheck2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { InvoiceItemsEditor } from './InvoiceItemsEditor'
@@ -12,6 +12,11 @@ import { InvoicePreview } from './InvoicePreview'
 import { InvoiceForm } from './InvoiceForm'
 import { createClient } from '@/lib/supabase/client'
 import { calculateInvoiceTotals } from '@/lib/utils/invoice-calculations'
+import {
+  buildInvoiceLifecyclePatch,
+  getActivityActionForStatus,
+  getStatusActionLabel,
+} from '@/lib/utils/invoice-status'
 import { getNextInvoiceNumber } from '@/lib/utils/invoice-number'
 import { getSupabaseErrorMessage } from '@/lib/utils/supabase-errors'
 import { cn } from '@/lib/utils/helpers'
@@ -33,8 +38,11 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
     selected_theme: invoice?.selected_theme || 'classic-professional',
     discount_type: invoice?.discount_type || 'fixed',
     discount_value: invoice?.discount_value || 0,
+    tax_enabled: invoice?.tax_enabled ?? (Number(invoice?.tax_rate || invoice?.tax_total) > 0),
     tax_rate: invoice?.tax_rate || 0,
     shipping_total: invoice?.shipping_total || 0,
+    paid_amount: invoice?.paid_amount || 0,
+    remaining_amount: invoice?.remaining_amount || 0,
     notes: invoice?.notes || brand?.default_notes || '',
     terms: invoice?.terms || brand?.default_terms || '',
     payment_info: invoice?.payment_info || brand?.payment_info || '',
@@ -51,6 +59,7 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
       default_currency: initialBrand.default_currency || 'EGP',
     }
   })
+  const financialLocked = invoice?.status === 'paid' && formData.status === 'paid'
 
   // Initialize invoice number
   useEffect(() => {
@@ -83,13 +92,25 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
 
   // Calculate totals
   const totals = useMemo(() => {
-    return calculateInvoiceTotals(items, {
+    const calculatedTotals = calculateInvoiceTotals(items, {
       discountType: formData.discount_type,
       discountValue: formData.discount_value,
+      taxEnabled: formData.tax_enabled,
       taxRate: formData.tax_rate,
       shippingTotal: formData.shipping_total,
+      paidAmount: formData.paid_amount,
     })
-  }, [items, formData.discount_type, formData.discount_value, formData.tax_rate, formData.shipping_total])
+
+    if (formData.status === 'paid') {
+      return {
+        ...calculatedTotals,
+        paidAmount: calculatedTotals.grandTotal,
+        remainingAmount: 0,
+      }
+    }
+
+    return calculatedTotals
+  }, [items, formData.discount_type, formData.discount_value, formData.tax_enabled, formData.tax_rate, formData.shipping_total, formData.paid_amount, formData.status])
 
   const previewInvoice = useMemo(() => ({
     ...formData,
@@ -98,6 +119,8 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
     tax_total: totals.taxTotal,
     shipping_total: totals.shippingTotal,
     grand_total: totals.grandTotal,
+    paid_amount: formData.status === 'paid' ? totals.grandTotal : totals.paidAmount,
+    remaining_amount: formData.status === 'paid' ? 0 : totals.remainingAmount,
   }), [formData, totals])
 
   const updateFormData = (field, value) => {
@@ -125,56 +148,100 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
     setClientData(selectedClient || null)
   }
 
-  const saveInvoice = async (status = 'draft') => {
+  const logInvoiceActivity = async (invoiceId, action, oldStatus, newStatus, note) => {
+    if (!invoiceId || !user?.id) return
+
+    const { error } = await supabase
+      .from('invoice_activity_logs')
+      .insert([{
+        invoice_id: invoiceId,
+        user_id: user.id,
+        action,
+        old_status: oldStatus || null,
+        new_status: newStatus || null,
+        note: note || null,
+      }])
+
+    if (error) {
+      console.warn('Invoice activity log failed:', error.message)
+    }
+  }
+
+  const normalizeItemsForSave = () => {
+    if (!items.length) {
+      throw new Error('يجب إضافة بند واحد على الأقل قبل حفظ الفاتورة.')
+    }
+
+    return items.map((item, index) => {
+      const name = item.name?.trim() || ''
+      const description = item.description?.trim() || ''
+      const quantity = Number(item.quantity)
+      const unitPrice = Number(item.unit_price)
+
+      if (!name && !description) {
+        throw new Error('يرجى إدخال اسم البند.')
+      }
+
+      if (!Number.isFinite(quantity) || quantity <= 0) {
+        throw new Error('يجب أن تكون الكمية أكبر من صفر.')
+      }
+
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+        throw new Error('سعر الوحدة لا يمكن أن يكون أقل من صفر.')
+      }
+
+      return {
+        name,
+        description,
+        quantity,
+        unit_price: unitPrice,
+        taxable: item.taxable !== false,
+        line_total: Number((quantity * unitPrice).toFixed(2)),
+        sort_order: index,
+      }
+    })
+  }
+
+  const saveInvoice = async (targetStatus = formData.status || 'draft') => {
     setLoading(true)
     try {
       if (!user?.id) {
-        throw new Error('لازم تسجل دخول الأول')
+        throw new Error('يجب تسجيل الدخول أولاً.')
       }
 
       const normalizedClientData = clientData?.name?.trim()
         ? { ...clientData, name: clientData.name.trim() }
         : null
-      const normalizedItems = items
-        .filter((item) => item?.name?.trim() || Number(item?.unit_price) > 0)
-        .map((item, index) => {
-          const quantity = Number(item.quantity) || 1
-          const unitPrice = Number(item.unit_price) || 0
-
-          return {
-            name: item.name?.trim() || 'بند',
-            description: item.description || '',
-            quantity,
-            unit_price: unitPrice,
-            taxable: item.taxable !== false,
-            line_total: quantity * unitPrice,
-            sort_order: index,
-          }
-        })
+      const normalizedItems = normalizeItemsForSave()
+      const nextFormData = { ...formData, status: targetStatus }
+      const nextTotals = targetStatus === 'paid'
+        ? { ...totals, paidAmount: totals.grandTotal, remainingAmount: 0 }
+        : totals
+      const lifecyclePatch = buildInvoiceLifecyclePatch(targetStatus, nextTotals, invoice || {})
 
       if (!formData.invoice_number?.trim()) {
-        throw new Error('رقم الفاتورة مطلوب')
+        throw new Error('رقم الفاتورة مطلوب.')
       }
 
       if (!normalizedClientData?.name) {
-        throw new Error('اسم العميل مطلوب')
+        throw new Error('اسم العميل مطلوب.')
       }
 
       if (normalizedItems.length === 0) {
-        throw new Error('ضيف بند واحد على الأقل في الفاتورة')
+        throw new Error('يجب إضافة بند واحد على الأقل قبل حفظ الفاتورة.')
       }
 
       const invoiceData = {
-        ...formData,
+        ...nextFormData,
         invoice_number: formData.invoice_number.trim(),
         client_id: formData.client_id || null,
         user_id: user.id,
-        status,
         subtotal: totals.subtotal,
         discount_total: totals.discountTotal,
         tax_total: totals.taxTotal,
         shipping_total: totals.shippingTotal,
         grand_total: totals.grandTotal,
+        ...lifecyclePatch,
         client_snapshot: normalizedClientData,
         brand_snapshot: brandData,
       }
@@ -188,15 +255,14 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
 
         if (error) throw error
 
-        // Update items
-        const { error: deleteItemsError } = await supabase
-          .from('invoice_items')
-          .delete()
-          .eq('invoice_id', invoice.id)
+        if (invoice.status !== 'paid' || targetStatus !== 'paid') {
+          const { error: deleteItemsError } = await supabase
+            .from('invoice_items')
+            .delete()
+            .eq('invoice_id', invoice.id)
 
-        if (deleteItemsError) throw deleteItemsError
+          if (deleteItemsError) throw deleteItemsError
 
-        if (normalizedItems.length > 0) {
           const itemsData = normalizedItems.map((item) => ({
             invoice_id: invoice.id,
             user_id: user.id,
@@ -212,7 +278,17 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
           if (itemsError) throw itemsError
         }
 
-        toast.success('الفاتورة اتحدثت')
+        const statusChanged = invoice.status !== targetStatus
+        await logInvoiceActivity(
+          invoice.id,
+          statusChanged ? getActivityActionForStatus(targetStatus) : 'updated',
+          invoice.status,
+          targetStatus,
+          statusChanged ? getStatusActionLabel(targetStatus) : 'تم حفظ تعديلات الفاتورة.'
+        )
+
+        setFormData(prev => ({ ...prev, ...invoiceData }))
+        toast.success(statusChanged ? 'تم تحديث حالة الفاتورة.' : 'تم تحديث الفاتورة.')
       } else {
         // Create new
         const { data: newInvoice, error } = await supabase
@@ -240,18 +316,31 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
           if (itemsError) throw itemsError
         }
 
-        toast.success('الفاتورة اتعملت')
+        await logInvoiceActivity(newInvoice.id, 'created', null, targetStatus, 'تم إنشاء الفاتورة.')
+        if (targetStatus !== 'draft') {
+          await logInvoiceActivity(
+            newInvoice.id,
+            getActivityActionForStatus(targetStatus),
+            'draft',
+            targetStatus,
+            getStatusActionLabel(targetStatus)
+          )
+        }
+
+        toast.success('تم إنشاء الفاتورة.')
         router.push(`/dashboard/invoices/${newInvoice.id}`)
       }
     } catch (error) {
-      toast.error(getSupabaseErrorMessage(error, 'معرفناش نحفظ الفاتورة'))
+      toast.error(getSupabaseErrorMessage(error, 'تعذر حفظ الفاتورة.'))
     } finally {
       setLoading(false)
     }
   }
 
   const handleSaveDraft = () => saveInvoice('draft')
-  const handleSaveAndSend = () => saveInvoice('sent')
+  const handleIssueInvoice = () => saveInvoice('sent')
+  const handleMarkPaid = () => saveInvoice('paid')
+  const handleCancelInvoice = () => saveInvoice('cancelled')
 
   return (
     <div className="space-y-4 xl:h-[calc(100vh-4rem)] xl:overflow-hidden xl:space-y-0">
@@ -275,6 +364,12 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
 
       <div className="grid gap-6 xl:h-full xl:grid-cols-[minmax(440px,640px)_minmax(520px,1fr)] xl:items-stretch">
       <section className={cn('min-w-0 space-y-5 xl:h-full xl:overflow-y-auto xl:pb-4 xl:pl-2 xl:pr-1', activeTab === 'preview' && 'hidden xl:block')}>
+          {financialLocked && (
+            <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm font-semibold leading-7 text-amber-700 dark:text-amber-200">
+              هذه الفاتورة مدفوعة. تعديل البنود أو الإجماليات قد يؤثر على السجلات المالية. يمكنك إرجاعها إلى مسودة قبل تعديل البنود.
+            </div>
+          )}
+
           <InvoiceForm
             formData={formData}
             onChange={updateFormData}
@@ -284,6 +379,7 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
             onBrandChange={updateBrandData}
             onClientChange={updateClientData}
             onSelectClient={selectSavedClient}
+            financialLocked={financialLocked}
           />
 
           <InvoiceItemsEditor
@@ -291,6 +387,8 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
             onChange={setItems}
             products={products}
             currency={formData.currency}
+            disabled={financialLocked}
+            taxEnabled={formData.tax_enabled}
           />
 
           <InvoiceTotals
@@ -299,6 +397,7 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
             discountType={formData.discount_type}
             discountValue={formData.discount_value}
             taxRate={formData.tax_rate}
+            taxEnabled={formData.tax_enabled}
           />
 
           <InvoiceThemeSelector
@@ -318,12 +417,29 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
               حفظ كمسودة
             </Button>
             <Button
-              onClick={handleSaveAndSend}
+              onClick={handleIssueInvoice}
               disabled={loading}
               className="h-12 gap-2"
             >
-              <Send className="h-4 w-4" />
-              حفظ كمبعتة
+              <FileCheck2 className="h-4 w-4" />
+              إصدار الفاتورة
+            </Button>
+            <Button
+              onClick={handleMarkPaid}
+              disabled={loading}
+              className="h-12 gap-2 bg-emerald-500 text-white hover:bg-emerald-600"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              تحديد كمدفوعة
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleCancelInvoice}
+              disabled={loading}
+              className="h-12 gap-2 border-red-500/40 text-red-500 hover:bg-red-500/10 hover:text-red-500"
+            >
+              <Ban className="h-4 w-4" />
+              إلغاء الفاتورة
             </Button>
           </div>
       </section>

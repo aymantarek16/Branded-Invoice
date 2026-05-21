@@ -12,10 +12,10 @@ import { toast } from 'sonner'
 
 function getLoginErrorMessage(error) {
   if (error?.message === 'Failed to fetch' || error instanceof TypeError) {
-    return 'مش قادرين نوصل لـ Supabase. اتأكد إن رابط Supabase والمفتاح صح، واعمل Refresh للصفحة.'
+    return 'تعذر الاتصال بـ Supabase. تأكد من صحة رابط Supabase والمفتاح ثم حدّث الصفحة.'
   }
 
-  return error?.message || 'بيانات الدخول مش صحيحة'
+  return error?.message || 'بيانات الدخول غير صحيحة.'
 }
 
 export default function LoginPage() {
@@ -62,7 +62,7 @@ export default function LoginPage() {
 
         <div>
           <h1 className="text-4xl font-black">تسجيل دخول</h1>
-          <p className="mt-3 text-slate-400">ادخل على حسابك وكمل فواتيرك.</p>
+          <p className="mt-3 text-slate-400">سجّل الدخول إلى حسابك وتابع فواتيرك.</p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div>
@@ -81,7 +81,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <Label htmlFor="password">الباسورد</Label>
+              <Label htmlFor="password">كلمة المرور</Label>
               <div className="relative mt-2">
                 <Input
                   id="password"
@@ -98,7 +98,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-                  aria-label={showPassword ? 'إخفاء الباسورد' : 'إظهار الباسورد'}
+                  aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -111,9 +111,9 @@ export default function LoginPage() {
           </form>
 
           {/* <p className="mt-7 text-center text-sm text-slate-400">
-            معندكش حساب؟{' '}
+            لا تملك حسابًا؟{' '}
             <Link href="/register" className="inline-flex items-center gap-1 font-black text-lime-200 hover:underline">
-              اعمل حساب
+              إنشاء حساب
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </p> */}

@@ -106,9 +106,9 @@ export function ElegantArabicRTL({ invoice }) {
                 <span className="font-medium text-red-600" dir="ltr">-{formatCurrency(inv?.discount_total || 0, currency)}</span>
               </div>
             )}
-            {inv?.tax_rate > 0 && (
+            {inv?.tax_enabled && inv?.tax_rate > 0 && inv?.tax_total > 0 && (
               <div className="flex justify-between py-2 border-b border-gray-200">
-                <span className="text-gray-600">الضريبة ({inv?.tax_rate}%)</span>
+                <span className="text-gray-600">ضريبة القيمة المضافة ({inv?.tax_rate}%)</span>
                 <span className="font-medium" dir="ltr">{formatCurrency(inv?.tax_total || 0, currency)}</span>
               </div>
             )}
@@ -146,7 +146,7 @@ export function ElegantArabicRTL({ invoice }) {
         {/* Footer */}
         <div className="mt-6 border-t-2 border-emerald-600 pt-4 text-center">
           <p className="text-emerald-700 font-bold">شكراً لتعاملكم معنا!</p>
-          <p className="text-sm text-gray-500">Thank you for your business!</p>
+          <p className="text-xs text-gray-500">هذا النظام مخصص لتنظيم وتصميم وتصدير وطباعة الفواتير فقط، وليس نظام ربط ضريبي رسمي.</p>
         </div>
       </div>
     </div>

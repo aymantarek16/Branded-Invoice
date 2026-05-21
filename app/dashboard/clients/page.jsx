@@ -36,7 +36,7 @@ export default function ClientsPage() {
   const fetchClients = async () => {
     setLoading(true)
     try {
-      if (!user) throw new Error('لازم تسجل دخول الأول')
+      if (!user) throw new Error('يجب تسجيل الدخول أولاً.')
 
       const { data, error } = await supabase
         .from('clients')
@@ -47,7 +47,7 @@ export default function ClientsPage() {
       if (error) throw error
       setClients(data || [])
     } catch (error) {
-      toast.error(getSupabaseErrorMessage(error, 'معرفناش نجيب العملاء'))
+      toast.error(getSupabaseErrorMessage(error, 'تعذر تحميل العملاء.'))
       setClients([])
     } finally {
       setLoading(false)
@@ -90,7 +90,7 @@ export default function ClientsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">العملاء</h1>
-          <p className="text-muted-foreground">كل بيانات عملاءك في مكان واحد</p>
+          <p className="text-muted-foreground">كل بيانات عملائك في مكان واحد</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -118,7 +118,7 @@ export default function ClientsPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="دور على عميل..."
+          placeholder="ابحث عن عميل..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -129,15 +129,15 @@ export default function ClientsPage() {
       {clients.length === 0 ? (
         <EmptyState
           icon="users"
-          title="لسه مفيش عملاء"
-          description="ضيف أول عميل عشان تبدأ تعمل فواتير أسرع"
+          title="لا يوجد عملاء حتى الآن"
+          description="أضف أول عميل لتبدأ إنشاء الفواتير بسرعة أكبر."
           actionLabel="إضافة عميل"
           onAction={handleAddClient}
         />
       ) : filteredClients.length === 0 ? (
         <EmptyState
           icon="users"
-          title="مفيش نتائج"
+          title="لا توجد نتائج"
           description="جرّب كلمة بحث مختلفة"
         />
       ) : (

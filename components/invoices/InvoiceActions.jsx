@@ -46,7 +46,7 @@ export function InvoiceActions({
       await onDelete?.()
       setDeleteDialog(false)
     } catch (error) {
-      toast.error(error.message || 'معرفناش نمسح الفاتورة')
+      toast.error(error.message || 'تعذر حذف الفاتورة.')
     } finally {
       setDeleting(false)
     }
@@ -57,7 +57,7 @@ export function InvoiceActions({
       await onDuplicate?.()
       setDuplicateDialog(false)
     } catch (error) {
-      toast.error(error.message || 'معرفناش ننسخ الفاتورة')
+      toast.error(error.message || 'تعذر نسخ الفاتورة.')
     }
   }
 
@@ -66,7 +66,7 @@ export function InvoiceActions({
     try {
       await onExportPDF?.()
     } catch (error) {
-      toast.error(error.message || 'معرفناش نصدر PDF')
+      toast.error(error.message || 'تعذر تصدير PDF')
     } finally {
       setExporting(false)
     }
@@ -77,7 +77,7 @@ export function InvoiceActions({
     try {
       await onExportPNG?.()
     } catch (error) {
-      toast.error(error.message || 'معرفناش نصدر PNG')
+      toast.error(error.message || 'تعذر تصدير PNG')
     } finally {
       setExporting(false)
     }
@@ -87,7 +87,7 @@ export function InvoiceActions({
     try {
       await onPrint?.()
     } catch (error) {
-      toast.error(error.message || 'معرفناش نطبع الفاتورة')
+      toast.error(error.message || 'تعذر طباعة الفاتورة')
     }
   }
 

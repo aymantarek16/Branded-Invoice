@@ -31,11 +31,11 @@ export function ProductsTable({ products, onRefresh, onEdit }) {
 
       if (error) throw error
 
-      toast.success('المنتج اتمسح')
+      toast.success('تم حذف المنتج.')
       setDeleteDialog(null)
       onRefresh?.()
     } catch (error) {
-      toast.error(getSupabaseErrorMessage(error, 'معرفناش نمسح المنتج'))
+      toast.error(getSupabaseErrorMessage(error, 'تعذر حذف المنتج.'))
     } finally {
       setDeleting(false)
     }
@@ -56,10 +56,10 @@ export function ProductsTable({ products, onRefresh, onEdit }) {
 
       if (error) throw error
 
-      toast.success('المنتج اتنسخ')
+      toast.success('تم نسخ المنتج.')
       onRefresh?.()
     } catch (error) {
-      toast.error(getSupabaseErrorMessage(error, 'معرفناش ننسخ المنتج'))
+      toast.error(getSupabaseErrorMessage(error, 'تعذر نسخ المنتج.'))
     }
   }
 
@@ -69,7 +69,7 @@ export function ProductsTable({ products, onRefresh, onEdit }) {
         <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
           <Tag className="w-8 h-8 text-muted-foreground" />
         </div>
-        <p className="text-muted-foreground">لسه مفيش منتجات</p>
+        <p className="text-muted-foreground">لا توجد منتجات حتى الآن</p>
       </div>
     )
   }

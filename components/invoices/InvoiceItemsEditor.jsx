@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Check, Plus, Search, ToggleLeft, ToggleRight, Trash2, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { calculateLineTotal } from '@/lib/utils/invoice-calculations'
 import { formatCurrency } from '@/lib/utils/currency'
 
 const currencyLabels = {
@@ -50,6 +51,7 @@ function ProductNameInput({
   currency,
   onChange,
   onSelectProduct,
+  disabled = false,
 }) {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef(null)
@@ -76,6 +78,7 @@ function ProductNameInput({
   }, [])
 
   const handleSelect = (product) => {
+    if (disabled) return
     onSelectProduct?.(product)
     setOpen(false)
   }
@@ -86,13 +89,15 @@ function ProductNameInput({
       <Input
         value={value}
         onChange={(event) => {
+          if (disabled) return
           onChange?.(event.target.value)
           setOpen(true)
         }}
-        onFocus={() => setOpen(true)}
-        placeholder="اكتب المنتج أو الخدمة"
+        onFocus={() => !disabled && setOpen(true)}
+        placeholder="اكتب اسم المنتج أو الخدمة"
         className="h-12 pr-11 pl-20 font-bold"
         autoComplete="off"
+        disabled={disabled}
       />
 
       <div className="absolute left-2 top-1/2 z-10 flex -translate-y-1/2 items-center gap-1">
@@ -103,6 +108,7 @@ function ProductNameInput({
             className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             aria-label="مسح اسم المنتج"
             title="مسح اسم المنتج"
+            disabled={disabled}
           >
             <X className="h-4 w-4" />
           </button>
@@ -114,7 +120,7 @@ function ProductNameInput({
         )}
       </div>
 
-      {open && products.length > 0 && (
+      {open && !disabled && products.length > 0 && (
         <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-xl">
           {filteredProducts.length > 0 ? (
             <div className="max-h-72 overflow-auto p-1">
@@ -153,6 +159,8 @@ export function InvoiceItemsEditor({
   onChange,
   products = [],
   currency = 'EGP',
+  disabled = false,
+  taxEnabled = false,
 }) {
   const initializedRef = useRef(false)
   const currencyLabel = currencyLabels[currency] || currency
@@ -167,10 +175,12 @@ export function InvoiceItemsEditor({
   }, [items.length, onChange])
 
   const addItem = () => {
+    if (disabled) return
     onChange([...items, createEmptyItem()])
   }
 
   const updateItem = (index, field, value) => {
+    if (disabled) return
     const newItems = [...items]
     newItems[index] = { ...newItems[index], [field]: value }
 
@@ -179,14 +189,13 @@ export function InvoiceItemsEditor({
     }
 
     const item = newItems[index]
-    const qty = parseFloat(item.quantity) || 0
-    const price = parseFloat(item.unit_price) || 0
-    newItems[index].line_total = qty * price
+    newItems[index].line_total = calculateLineTotal(item.quantity, item.unit_price)
 
     onChange(newItems)
   }
 
   const selectProductForItem = (index, product) => {
+    if (disabled) return
     const newItems = [...items]
     const quantity = parseFloat(newItems[index]?.quantity) || 1
     const unitPrice = Number(product.price) || 0
@@ -198,17 +207,19 @@ export function InvoiceItemsEditor({
       description: product.description || '',
       quantity,
       unit_price: unitPrice,
-      line_total: quantity * unitPrice,
+      line_total: calculateLineTotal(quantity, unitPrice),
     }
 
     onChange(newItems)
   }
 
   const removeItem = (index) => {
+    if (disabled) return
     onChange(items.filter((_, i) => i !== index))
   }
 
   const toggleTaxable = (index) => {
+    if (disabled || !taxEnabled) return
     const newItems = [...items]
     newItems[index].taxable = !newItems[index].taxable
     onChange(newItems)
@@ -218,11 +229,17 @@ export function InvoiceItemsEditor({
     <div dir="rtl" className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-lg font-black">بنود الفاتورة</h3>
-        <Button type="button" onClick={addItem} className="h-11 gap-2 whitespace-nowrap px-5">
+        <Button type="button" onClick={addItem} disabled={disabled} className="h-11 gap-2 whitespace-nowrap px-5">
           <Plus className="h-4 w-4" />
           بند جديد
         </Button>
       </div>
+
+      {disabled && (
+        <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm font-medium text-amber-700 dark:text-amber-200">
+          هذه الفاتورة مدفوعة. تعديل البنود قد يؤثر على السجلات المالية.
+        </div>
+      )}
 
       <div className="space-y-3">
         {items.length === 0 ? (
@@ -236,7 +253,7 @@ export function InvoiceItemsEditor({
           </button>
         ) : (
           items.map((item, index) => {
-            const lineTotal = item.line_total || (Number(item.quantity) || 0) * (Number(item.unit_price) || 0)
+            const lineTotal = item.line_total || calculateLineTotal(item.quantity, item.unit_price)
 
             return (
               <motion.div
@@ -256,6 +273,18 @@ export function InvoiceItemsEditor({
                       currency={currency}
                       onChange={(value) => updateItem(index, 'name', value)}
                       onSelectProduct={(product) => selectProductForItem(index, product)}
+                      disabled={disabled}
+                    />
+                  </label>
+
+                  <label className="space-y-1.5">
+                    <span className="text-xs font-bold text-muted-foreground">وصف مختصر</span>
+                    <Input
+                      value={item.description || ''}
+                      onChange={(event) => updateItem(index, 'description', event.target.value)}
+                      placeholder="وصف اختياري للبند"
+                      className="h-11"
+                      disabled={disabled}
                     />
                   </label>
 
@@ -268,6 +297,7 @@ export function InvoiceItemsEditor({
                         value={item.quantity}
                         onChange={(event) => updateItem(index, 'quantity', event.target.value)}
                         className="h-11 text-center font-bold"
+                        disabled={disabled}
                       />
                     </label>
 
@@ -283,6 +313,7 @@ export function InvoiceItemsEditor({
                           placeholder="0.00"
                           className="h-11 pr-14 text-left font-bold"
                           dir="ltr"
+                          disabled={disabled}
                         />
                         <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-muted-foreground">
                           {currencyLabel}
@@ -304,15 +335,16 @@ export function InvoiceItemsEditor({
                     type="button"
                     onClick={() => toggleTaxable(index)}
                     className={`inline-flex h-10 items-center gap-2 rounded-xl px-3 text-xs font-bold transition-colors ${
-                      item.taxable
+                      taxEnabled && item.taxable
                         ? 'bg-primary/10 text-primary'
                         : 'bg-muted text-muted-foreground'
                     }`}
-                    aria-label={item.taxable ? 'عليه ضريبة' : 'بدون ضريبة'}
-                    title={item.taxable ? 'عليه ضريبة' : 'بدون ضريبة'}
+                    aria-label={taxEnabled ? (item.taxable ? 'خاضع للضريبة' : 'غير خاضع للضريبة') : 'الضريبة غير مفعلة'}
+                    title={taxEnabled ? (item.taxable ? 'خاضع للضريبة' : 'غير خاضع للضريبة') : 'الضريبة غير مفعلة'}
+                    disabled={disabled || !taxEnabled}
                   >
                     {item.taxable ? <ToggleRight className="h-5 w-5" /> : <ToggleLeft className="h-5 w-5" />}
-                    {item.taxable ? 'عليه ضريبة' : 'بدون ضريبة'}
+                    {taxEnabled ? (item.taxable ? 'خاضع للضريبة' : 'غير خاضع للضريبة') : 'الضريبة غير مفعلة'}
                   </button>
 
                   <button
@@ -321,6 +353,7 @@ export function InvoiceItemsEditor({
                     className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-red-500 transition-colors hover:bg-red-500/10"
                     aria-label="حذف البند"
                     title="حذف البند"
+                    disabled={disabled}
                   >
                     <Trash2 className="h-5 w-5" />
                   </button>

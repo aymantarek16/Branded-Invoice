@@ -34,11 +34,11 @@ export function ClientsTable({ clients, onRefresh, onEdit }) {
 
       if (error) throw error
 
-      toast.success('العميل اتمسح')
+      toast.success('تم حذف العميل.')
       setDeleteDialog(null)
       onRefresh?.()
     } catch (error) {
-      toast.error(getSupabaseErrorMessage(error, 'معرفناش نمسح العميل'))
+      toast.error(getSupabaseErrorMessage(error, 'تعذر حذف العميل.'))
     } finally {
       setDeleting(false)
     }
@@ -60,10 +60,10 @@ export function ClientsTable({ clients, onRefresh, onEdit }) {
 
       if (error) throw error
 
-      toast.success('العميل اتنسخ')
+      toast.success('تم نسخ العميل.')
       onRefresh?.()
     } catch (error) {
-      toast.error(getSupabaseErrorMessage(error, 'معرفناش ننسخ العميل'))
+      toast.error(getSupabaseErrorMessage(error, 'تعذر نسخ العميل.'))
     }
   }
 
@@ -73,12 +73,12 @@ export function ClientsTable({ clients, onRefresh, onEdit }) {
         <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
           <Building2 className="w-8 h-8 text-muted-foreground" />
         </div>
-        <p className="text-muted-foreground">لسه مفيش عملاء</p>
+        <p className="text-muted-foreground">لا يوجد عملاء حتى الآن</p>
         <Link
           href="/dashboard/clients"
           className="inline-flex items-center gap-2 mt-4 text-sm text-primary hover:underline"
         >
-          ضيف أول عميل
+          أضف أول عميل
         </Link>
       </div>
     )

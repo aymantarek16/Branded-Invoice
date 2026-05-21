@@ -36,7 +36,7 @@ export default function BrandPage() {
     <div className="max-w-3xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">البراند</h1>
-        <p className="text-muted-foreground">ظبط اسم شركتك، اللوجو، وبيانات الفواتير الافتراضية</p>
+        <p className="text-muted-foreground">عدّل اسم شركتك، الشعار، وبيانات الفواتير الافتراضية</p>
       </div>
 
       <motion.div

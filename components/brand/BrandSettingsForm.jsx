@@ -16,7 +16,7 @@ import { CURRENCY_LIST } from '@/lib/utils/currency'
 const brandSchema = z.object({
   brand_name: z.string().min(1, 'اسم البراند مطلوب'),
   logo_url: z.string().nullable().optional(),
-  email: z.string().email('الإيميل مش صحيح').optional().or(z.literal('')),
+  email: z.string().email('البريد الإلكتروني غير صحيح.').optional().or(z.literal('')),
   phone: z.string().optional(),
   website: z.string().optional(),
   address: z.string().optional(),
@@ -72,13 +72,13 @@ export function BrandSettingsForm({ brand, onSuccess }) {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('ارفع صورة بس')
+      toast.error('يرجى رفع ملف صورة فقط.')
       return
     }
 
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      toast.error('حجم الصورة لازم يبقى أقل من ٢ ميجا')
+      toast.error('يجب أن يكون حجم الصورة أقل من ٢ ميجا.')
       return
     }
 
@@ -90,7 +90,7 @@ export function BrandSettingsForm({ brand, onSuccess }) {
       } = await supabase.auth.getUser()
 
       if (userError) throw userError
-      if (!user) throw new Error('لازم تسجل دخول الأول')
+      if (!user) throw new Error('يجب تسجيل الدخول أولاً.')
 
       const fileExt = file.name.split('.').pop()
       const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`
@@ -110,9 +110,9 @@ export function BrandSettingsForm({ brand, onSuccess }) {
         .getPublicUrl(filePath)
 
       setValue('logo_url', publicData.publicUrl)
-      toast.success('اللوجو اترفع')
+      toast.success('تم رفع الشعار.')
     } catch (error) {
-      toast.error(error.message || 'معرفناش نرفع اللوجو')
+      toast.error(error.message || 'تعذر رفع الشعار.')
     } finally {
       setUploading(false)
     }
@@ -127,9 +127,9 @@ export function BrandSettingsForm({ brand, onSuccess }) {
         await supabase.storage.from('brand-assets').remove([filePath])
       }
       setValue('logo_url', null)
-      toast.success('اللوجو اتمسح')
+      toast.success('تم حذف الشعار.')
     } catch (error) {
-      toast.error('معرفناش نمسح اللوجو')
+      toast.error('تعذر حذف الشعار.')
     }
   }, [getLogoPathFromUrl, logoUrl, supabase, setValue])
 
@@ -145,7 +145,7 @@ export function BrandSettingsForm({ brand, onSuccess }) {
           .single()
 
         if (error) throw error
-        toast.success('بيانات البراند اتحدثت')
+        toast.success('تم تحديث بيانات البراند.')
         onSuccess?.(savedBrand)
       } else {
         const {
@@ -154,7 +154,7 @@ export function BrandSettingsForm({ brand, onSuccess }) {
         } = await supabase.auth.getUser()
 
         if (userError) throw userError
-        if (!user) throw new Error('لازم تسجل دخول الأول')
+        if (!user) throw new Error('يجب تسجيل الدخول أولاً.')
 
         const { data: savedBrand, error } = await supabase.from('brand_profiles').insert([
           {
@@ -164,11 +164,11 @@ export function BrandSettingsForm({ brand, onSuccess }) {
         ]).select().single()
 
         if (error) throw error
-        toast.success('بيانات البراند اتعملت')
+        toast.success('تم إنشاء بيانات البراند.')
         onSuccess?.(savedBrand)
       }
     } catch (error) {
-      toast.error(error.message || 'معرفناش نحفظ بيانات البراند')
+      toast.error(error.message || 'تعذر حفظ بيانات البراند.')
     } finally {
       setLoading(false)
     }
@@ -215,8 +215,8 @@ export function BrandSettingsForm({ brand, onSuccess }) {
             </label>
           )}
           <div className="text-sm text-muted-foreground">
-            <p>ارفع لوجو البراند</p>
-            <p className="text-xs mt-1">PNG أو JPG لحد ٢ ميجا</p>
+            <p>ارفع شعار البراند</p>
+            <p className="text-xs mt-1">PNG أو JPG حتى ٢ ميجا</p>
           </div>
         </div>
       </div>

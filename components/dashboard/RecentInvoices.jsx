@@ -13,7 +13,7 @@ export function RecentInvoices({ invoices, currency = 'EGP' }) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-semibold">آخر الفواتير</h3>
-          <p className="text-sm text-muted-foreground">أحدث فواتير على حسابك</p>
+          <p className="text-sm text-muted-foreground">أحدث الفواتير في حسابك</p>
         </div>
         <Link
           href="/dashboard/invoices"
@@ -65,12 +65,12 @@ export function RecentInvoices({ invoices, currency = 'EGP' }) {
           <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
             <FileText className="w-8 h-8 text-muted-foreground" />
           </div>
-          <p className="text-muted-foreground">لسه مفيش فواتير</p>
+          <p className="text-muted-foreground">لا توجد فواتير حتى الآن</p>
           <Link
             href="/dashboard/invoices/new"
             className="inline-flex items-center gap-2 mt-4 text-sm text-primary hover:underline"
           >
-            اعمل أول فاتورة
+            إنشاء أول فاتورة
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

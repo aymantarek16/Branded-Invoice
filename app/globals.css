@@ -6,24 +6,24 @@
 
 @layer base {
   :root {
-    --background: 207 55% 6%;
+    --background: 222 35% 11%;
     --foreground: 210 40% 98%;
-    --card: 207 45% 8%;
+    --card: 222 30% 14%;
     --card-foreground: 210 40% 98%;
-    --popover: 207 45% 8%;
+    --popover: 222 30% 14%;
     --popover-foreground: 210 40% 98%;
     --primary: 78 92% 66%;
-    --primary-foreground: 207 55% 6%;
+    --primary-foreground: 222 35% 11%;
     --secondary: 194 90% 61%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 207 35% 14%;
+    --muted: 222 26% 18%;
+    --muted-foreground: 215 20% 72%;
+    --accent: 222 26% 18%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 65% 42%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 222 20% 24%;
+    --input: 222 20% 22%;
     --ring: 194 90% 61%;
     --radius: 0.75rem;
   }
@@ -105,6 +105,14 @@
   background: white;
 }
 
+.invoice-export-area,
+.invoice-print-area,
+#invoice-print-area {
+  background: #ffffff !important;
+  color: #111827 !important;
+  color-scheme: light;
+}
+
 /* Print styles */
 @media print {
   body * {
@@ -112,16 +120,13 @@
   }
 
   #invoice-print-root,
-  #invoice-print-root *,
-  #invoice-print-area,
-  #invoice-print-area * {
+  #invoice-print-root * {
     visibility: visible;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  #invoice-print-root,
-  #invoice-print-area {
+  #invoice-print-root {
     position: fixed;
     left: 0;
     top: 0;
@@ -136,7 +141,7 @@
     display: block !important;
   }
 
-  #invoice-print-root #invoice-print-area {
+  #invoice-print-root .invoice-print-area {
     transform: none !important;
     transform-origin: top left !important;
   }

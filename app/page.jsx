@@ -14,8 +14,8 @@ import {
 const actions = [
   {
     icon: ReceiptText,
-    title: 'اعمل فاتورة',
-    text: 'ضيف العميل والبنود وشوف المعاينة فورًا.',
+    title: 'إنشاء فاتورة',
+    text: 'أضف العميل والبنود واعرض المعاينة فورًا.',
   },
   {
     icon: Users,
@@ -25,12 +25,12 @@ const actions = [
   {
     icon: FolderKanban,
     title: 'احفظ المنتجات',
-    text: 'سجّل الخدمات والأسعار اللي بتستخدمها كتير.',
+    text: 'سجّل الخدمات والأسعار التي تستخدمها كثيرًا.',
   },
   {
     icon: Palette,
-    title: 'اختار الشكل',
-    text: 'بدّل بين أكتر من شكل للفاتورة حسب شغلك.',
+    title: 'اختر التصميم',
+    text: 'بدّل بين أكثر من تصميم للفاتورة حسب طبيعة عملك.',
   },
 ]
 
@@ -80,11 +80,11 @@ export default function HomePage() {
           </div>
 
           <h1 className="max-w-3xl text-5xl font-black leading-tight sm:text-6xl">
-            اعمل فواتيرك بسرعة وبشكل منظم.
+            أنشئ فواتيرك بسرعة وبشكل منظم.
           </h1>
 
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">
-            ادخل حسابك، ظبط بيانات البراند، ضيف العملاء والبنود، وصدّر الفاتورة PDF أو PNG.
+            ادخل إلى حسابك، عدّل بيانات البراند، أضف العملاء والبنود، وصدّر الفاتورة PDF أو PNG.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -92,7 +92,7 @@ export default function HomePage() {
               href="/register"
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-lime-300 px-7 py-4 text-base font-black text-slate-950 hover:bg-lime-200"
             >
-              ابدأ دلوقتي
+              ابدأ الآن
               <ArrowLeft className="h-5 w-5" />
             </Link> */}
             <Link
@@ -130,7 +130,7 @@ export default function HomePage() {
             </div>
 
             <div className="mt-5 rounded-2xl bg-slate-950 p-4 text-white">
-              <p className="text-sm text-white/60">الخطوة الجاية</p>
+              <p className="text-sm text-white/60">الخطوة التالية</p>
               <p className="mt-1 font-black">صدّر PDF أو PNG</p>
             </div>
           </div>

@@ -8,7 +8,7 @@ export function ConfirmDialog({
   open,
   onOpenChange,
   title = 'تأكيد الإجراء',
-  description = 'هل أنت متأكد إنك عايز تكمل؟ الإجراء ده لا يمكن التراجع عنه.',
+  description = 'هل أنت متأكد من متابعة هذا الإجراء؟ لا يمكن التراجع عنه بعد التأكيد.',
   confirmLabel = 'تأكيد',
   cancelLabel = 'إلغاء',
   onConfirm,
@@ -75,7 +75,7 @@ export function DeleteConfirmDialog({ open, onOpenChange, itemName, onDelete, lo
       open={open}
       onOpenChange={onOpenChange}
       title="حذف العنصر"
-      description={`هل أنت متأكد إنك عايز تحذف "${itemName || 'العنصر ده'}"؟ الإجراء ده لا يمكن التراجع عنه.`}
+      description={`هل أنت متأكد من حذف "${itemName || 'هذا العنصر'}"؟ لا يمكن التراجع عن هذا الإجراء.`}
       confirmLabel="حذف"
       cancelLabel="إلغاء"
       variant="delete"
@@ -91,7 +91,7 @@ export function DuplicateConfirmDialog({ open, onOpenChange, invoiceNumber, onDu
       open={open}
       onOpenChange={onOpenChange}
       title="نسخ الفاتورة"
-      description={`تعمل نسخة جديدة من الفاتورة ${invoiceNumber}؟`}
+      description={`هل تريد إنشاء نسخة جديدة من الفاتورة ${invoiceNumber}؟`}
       confirmLabel="نسخ"
       cancelLabel="إلغاء"
       variant="duplicate"

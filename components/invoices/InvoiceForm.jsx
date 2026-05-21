@@ -2,17 +2,10 @@
 
 import { Input, Textarea } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
+import { Label, Switch } from '@/components/ui/label'
 import { ClientPicker } from './ClientPicker'
+import { InvoiceStatusBadge } from './InvoiceStatusBadge'
 import { CURRENCY_LIST } from '@/lib/utils/currency'
-
-const STATUS_OPTIONS = [
-  { value: 'draft', label: 'مسودة' },
-  { value: 'sent', label: 'مبعوتة' },
-  { value: 'paid', label: 'مدفوعة' },
-  { value: 'overdue', label: 'متأخرة' },
-  { value: 'cancelled', label: 'ملغية' },
-]
 
 export function InvoiceForm({
   formData,
@@ -23,6 +16,7 @@ export function InvoiceForm({
   onBrandChange,
   onClientChange,
   onSelectClient,
+  financialLocked = false,
 }) {
   const handleChange = (field, value) => {
     onChange(field, value)
@@ -30,10 +24,10 @@ export function InvoiceForm({
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5 md:p-6">
-      <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="mb-5 flex items-center justify-between gap-3">
         <h3 className="text-lg font-black">بيانات الفاتورة</h3>
         <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-          املأ الاساسيات
+          املأ البيانات الأساسية
         </span>
       </div>
 
@@ -57,6 +51,7 @@ export function InvoiceForm({
             selectedClientId={formData.client_id || ''}
             onQuickNameChange={(value) => onClientChange?.('name', value)}
             onSelectClient={onSelectClient}
+            disabled={financialLocked}
           />
         </div>
 
@@ -70,23 +65,15 @@ export function InvoiceForm({
               placeholder="رقم الفاتورة"
               className="mt-2 h-12"
               dir="ltr"
+              disabled={financialLocked}
             />
           </div>
 
           <div>
-            <Label htmlFor="status">الحالة</Label>
-            <Select value={formData.status} onValueChange={(v) => handleChange('status', v)}>
-              <SelectTrigger id="status" className="mt-2 h-12">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>الحالة الحالية</Label>
+            <div className="mt-2 flex h-12 items-center rounded-xl border border-input bg-background px-4">
+              <InvoiceStatusBadge status={formData.status} />
+            </div>
           </div>
         </div>
 
@@ -99,6 +86,7 @@ export function InvoiceForm({
               value={formData.issue_date}
               onChange={(e) => handleChange('issue_date', e.target.value)}
               className="mt-2 h-12"
+              disabled={financialLocked}
             />
           </div>
 
@@ -110,13 +98,14 @@ export function InvoiceForm({
               value={formData.due_date}
               onChange={(e) => handleChange('due_date', e.target.value)}
               className="mt-2 h-12"
+              disabled={financialLocked}
             />
           </div>
 
           <div>
             <Label htmlFor="currency">العملة</Label>
             <Select value={formData.currency} onValueChange={(v) => handleChange('currency', v)}>
-              <SelectTrigger id="currency" className="mt-2 h-12">
+              <SelectTrigger id="currency" className="mt-2 h-12" disabled={financialLocked}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -136,6 +125,24 @@ export function InvoiceForm({
           </summary>
 
           <div className="mt-5 space-y-5">
+            <div className="grid gap-4 rounded-xl border border-border bg-background/50 p-4 sm:grid-cols-[1fr_auto] sm:items-center">
+              <div className="min-w-0 space-y-1 text-right">
+                <Label htmlFor="tax_enabled" className="text-sm font-bold">تفعيل الضريبة</Label>
+                <p className="text-xs leading-6 text-muted-foreground">
+                  عند التفعيل تظهر الضريبة في المعاينة والطباعة والتصدير.
+                </p>
+              </div>
+              <div className="flex justify-start sm:justify-end">
+                <Switch
+                  id="tax_enabled"
+                  checked={Boolean(formData.tax_enabled)}
+                  onCheckedChange={(checked) => handleChange('tax_enabled', checked)}
+                  disabled={financialLocked}
+                  aria-label="تفعيل الضريبة"
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
                 <Label htmlFor="discount_type">نوع الخصم</Label>
@@ -143,7 +150,7 @@ export function InvoiceForm({
                   value={formData.discount_type}
                   onValueChange={(v) => handleChange('discount_type', v)}
                 >
-                  <SelectTrigger id="discount_type" className="mt-2 h-12">
+                  <SelectTrigger id="discount_type" className="mt-2 h-12" disabled={financialLocked}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -163,11 +170,12 @@ export function InvoiceForm({
                   value={formData.discount_value}
                   onChange={(e) => handleChange('discount_value', Number.parseFloat(e.target.value) || 0)}
                   className="mt-2 h-12"
+                  disabled={financialLocked}
                 />
               </div>
 
               <div>
-                <Label htmlFor="tax_rate">الضريبة (%)</Label>
+                <Label htmlFor="tax_rate">نسبة الضريبة (%)</Label>
                 <Input
                   id="tax_rate"
                   type="number"
@@ -177,6 +185,7 @@ export function InvoiceForm({
                   value={formData.tax_rate}
                   onChange={(e) => handleChange('tax_rate', Number.parseFloat(e.target.value) || 0)}
                   className="mt-2 h-12"
+                  disabled={financialLocked || !formData.tax_enabled}
                 />
               </div>
             </div>
@@ -192,6 +201,7 @@ export function InvoiceForm({
                 onChange={(e) => handleChange('shipping_total', Number.parseFloat(e.target.value) || 0)}
                 placeholder="0"
                 className="mt-2 h-12"
+                disabled={financialLocked}
               />
             </div>
 

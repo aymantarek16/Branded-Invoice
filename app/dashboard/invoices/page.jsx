@@ -45,10 +45,9 @@ import { toast } from 'sonner'
 const STATUS_FILTERS = [
   { value: 'all', label: 'كل الحالات' },
   { value: 'draft', label: 'مسودة' },
-  { value: 'sent', label: 'مبعوتة' },
+  { value: 'sent', label: 'صادرة' },
   { value: 'paid', label: 'مدفوعة' },
-  { value: 'overdue', label: 'متأخرة' },
-  { value: 'cancelled', label: 'ملغية' },
+  { value: 'cancelled', label: 'ملغاة' },
 ]
 
 export default function InvoicesPage() {
@@ -69,7 +68,7 @@ export default function InvoicesPage() {
   const fetchInvoices = async () => {
     setLoading(true)
     try {
-      if (!user) throw new Error('لازم تسجل دخول الأول')
+      if (!user) throw new Error('يجب تسجيل الدخول أولاً.')
 
       const { data, error } = await supabase
         .from('invoices')
@@ -101,16 +100,19 @@ export default function InvoicesPage() {
   }, [invoices, searchQuery, statusFilter])
 
   const visibleSummary = useMemo(() => {
-    const total = filteredInvoices.reduce(
-      (sum, invoice) => sum + (Number(invoice.grand_total) || 0),
-      0
-    )
-    const paid = filteredInvoices.filter((invoice) => invoice.status === 'paid').length
+    const paidInvoices = filteredInvoices.filter((invoice) => invoice.status === 'paid')
+    const pendingInvoices = filteredInvoices.filter((invoice) => invoice.status === 'sent')
+    const draftInvoices = filteredInvoices.filter((invoice) => invoice.status === 'draft')
+    const cancelledInvoices = filteredInvoices.filter((invoice) => invoice.status === 'cancelled')
 
     return {
       count: filteredInvoices.length,
-      total,
-      paid,
+      paidTotal: paidInvoices.reduce((sum, invoice) => sum + (Number(invoice.grand_total) || 0), 0),
+      pendingTotal: pendingInvoices.reduce((sum, invoice) => sum + (Number(invoice.remaining_amount || invoice.grand_total) || 0), 0),
+      paid: paidInvoices.length,
+      pending: pendingInvoices.length,
+      drafts: draftInvoices.length,
+      cancelled: cancelledInvoices.length,
     }
   }, [filteredInvoices])
 
@@ -126,11 +128,11 @@ export default function InvoicesPage() {
 
       if (error) throw error
 
-      toast.success('الفاتورة اتمسحت')
+      toast.success('تم حذف الفاتورة.')
       setDeleteDialog(null)
       fetchInvoices()
     } catch (error) {
-      toast.error(error.message || 'معرفناش نمسح الفاتورة')
+      toast.error(error.message || 'تعذر حذف الفاتورة.')
     } finally {
       setDeleting(false)
     }
@@ -153,13 +155,19 @@ export default function InvoicesPage() {
 
       if (itemsError) throw itemsError
 
-      const { id, created_at, updated_at, ...invoiceCopy } = invoice
+      const { id, created_at, updated_at, issued_at, finalized_at, paid_at, cancelled_at, ...invoiceCopy } = invoice
       const { data: newInvoice, error } = await supabase
         .from('invoices')
         .insert([{
           ...invoiceCopy,
           invoice_number: getNextInvoiceNumber(lastInvoice?.invoice_number),
           status: 'draft',
+          issued_at: null,
+          finalized_at: null,
+          paid_at: null,
+          cancelled_at: null,
+          paid_amount: 0,
+          remaining_amount: Number(invoice.grand_total) || 0,
         }])
         .select()
         .single()
@@ -186,10 +194,18 @@ export default function InvoicesPage() {
         if (copyItemsError) throw copyItemsError
       }
 
-      toast.success('الفاتورة اتنسخت كمسودة')
+      await supabase.from('invoice_activity_logs').insert([{
+        invoice_id: newInvoice.id,
+        user_id: newInvoice.user_id,
+        action: 'created',
+        new_status: 'draft',
+        note: 'تم إنشاء الفاتورة كنسخة من فاتورة أخرى.',
+      }])
+
+      toast.success('تم نسخ الفاتورة كمسودة.')
       fetchInvoices()
     } catch (error) {
-      toast.error(error.message || 'معرفناش ننسخ الفاتورة')
+      toast.error(error.message || 'تعذر نسخ الفاتورة.')
     }
   }
 
@@ -216,7 +232,7 @@ export default function InvoicesPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="دور برقم الفاتورة أو اسم العميل..."
+            placeholder="ابحث برقم الفاتورة أو اسم العميل..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -239,18 +255,18 @@ export default function InvoicesPage() {
       {filteredInvoices.length === 0 ? (
         <EmptyState
           icon="file"
-          title="مفيش فواتير"
+          title="لا توجد فواتير"
           description={
             searchQuery || statusFilter !== 'all'
-              ? 'جرب تغير البحث أو الفلتر'
-              : 'اعمل أول فاتورة وابدأ البيع بشكل محترف'
+              ? 'جرّب تعديل البحث أو الفلتر.'
+              : 'أنشئ أول فاتورة وابدأ تنظيم مبيعاتك بشكل احترافي.'
           }
-          actionLabel="عمل فاتورة"
+          actionLabel="إنشاء فاتورة"
           onAction={() => router.push('/dashboard/invoices/new')}
         />
       ) : (
         <>
-          <div className="grid gap-3 lg:grid-cols-3">
+          <div className="grid gap-3 lg:grid-cols-4">
             <div className="rounded-2xl border border-border bg-card/80 p-4">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -268,8 +284,10 @@ export default function InvoicesPage() {
                   <Eye className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-xs font-bold text-muted-foreground">المدفوعة</p>
-                  <p className="text-2xl font-black">{visibleSummary.paid}</p>
+                  <p className="text-xs font-bold text-muted-foreground">إجمالي المدفوع</p>
+                  <p className="text-xl font-black">
+                    {formatCurrency(visibleSummary.paidTotal, filteredInvoices[0]?.currency || 'EGP')}
+                  </p>
                 </div>
               </div>
             </div>
@@ -279,10 +297,21 @@ export default function InvoicesPage() {
                   <CalendarDays className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-xs font-bold text-muted-foreground">إجمالي المعروض</p>
+                  <p className="text-xs font-bold text-muted-foreground">إجمالي المستحق</p>
                   <p className="text-xl font-black">
-                    {formatCurrency(visibleSummary.total, filteredInvoices[0]?.currency || 'EGP')}
+                    {formatCurrency(visibleSummary.pendingTotal, filteredInvoices[0]?.currency || 'EGP')}
                   </p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-border bg-card/80 p-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400/10 text-amber-300">
+                  <ReceiptText className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-xs font-bold text-muted-foreground">مسودات / ملغاة</p>
+                  <p className="text-2xl font-black">{visibleSummary.drafts} / {visibleSummary.cancelled}</p>
                 </div>
               </div>
             </div>

@@ -17,25 +17,25 @@ export function RetailReceipt({ invoice }) {
         )}
         <div className="text-xs space-y-0.5">
           {brand?.address && <p>{brand.address}</p>}
-          {brand?.phone && <p>Tel: {brand.phone}</p>}
+          {brand?.phone && <p>الهاتف: {brand.phone}</p>}
           {brand?.email && <p>{brand.email}</p>}
-          {brand?.tax_number && <p>Tax No: {brand.tax_number}</p>}
+          {brand?.tax_number && <p>الرقم الضريبي: {brand.tax_number}</p>}
         </div>
       </div>
 
       {/* Receipt Info */}
       <div className="mb-5 text-center">
-        <p className="text-2xl font-bold">INVOICE</p>
+        <p className="text-2xl font-bold">فاتورة</p>
         <p className="text-sm mt-1">#{inv?.invoice_number}</p>
         <div className="text-xs mt-3 space-y-0.5">
-          <p>Date: {formatDateShort(inv?.issue_date)}</p>
-          <p>Due: {formatDateShort(inv?.due_date)}</p>
+          <p>تاريخ الإصدار: {formatDateShort(inv?.issue_date)}</p>
+          <p>تاريخ الاستحقاق: {formatDateShort(inv?.due_date)}</p>
         </div>
       </div>
 
       <div className="mb-5 border-y border-dashed border-gray-300 py-4">
         <div className="flex justify-between text-sm">
-          <span>Customer: {client?.name}</span>
+          <span>العميل: {client?.name}</span>
         </div>
         {client?.address && <p className="text-xs text-gray-500 mt-1">{client.address}</p>}
         {client?.company_name && <p className="text-xs text-gray-500">{client.company_name}</p>}
@@ -44,10 +44,10 @@ export function RetailReceipt({ invoice }) {
       {/* Items */}
       <div className="mb-4 border-b border-dashed border-gray-300 pb-4">
         <div className="flex font-bold text-xs border-b border-gray-300 pb-2 mb-2">
-          <span className="flex-1">Item</span>
-          <span className="w-10 text-center">Qty</span>
-          <span className="w-20 text-right">Price</span>
-          <span className="w-20 text-right">Total</span>
+          <span className="flex-1">البند</span>
+          <span className="w-10 text-center">الكمية</span>
+          <span className="w-20 text-right">السعر</span>
+          <span className="w-20 text-right">الإجمالي</span>
         </div>
         {items?.map((item, index) => (
           <div key={index} className="flex text-xs py-1">
@@ -62,24 +62,24 @@ export function RetailReceipt({ invoice }) {
       {/* Totals */}
       <div className="space-y-2 text-sm border-b border-dashed border-gray-300 pb-4 mb-4">
         <div className="flex justify-between">
-          <span>Subtotal:</span>
+          <span>المجموع الفرعي:</span>
           <span>{formatCurrency(inv?.subtotal || 0, currency)}</span>
         </div>
         {inv?.discount_value > 0 && (
           <div className="flex justify-between text-green-600">
-            <span>Discount:</span>
+            <span>الخصم:</span>
             <span>-{formatCurrency(inv?.discount_total || 0, currency)}</span>
           </div>
         )}
-        {inv?.tax_rate > 0 && (
+        {inv?.tax_enabled && inv?.tax_rate > 0 && inv?.tax_total > 0 && (
           <div className="flex justify-between">
-            <span>Tax ({inv?.tax_rate}%):</span>
+            <span>ضريبة القيمة المضافة ({inv?.tax_rate}%):</span>
             <span>{formatCurrency(inv?.tax_total || 0, currency)}</span>
           </div>
         )}
         {inv?.shipping_total > 0 && (
           <div className="flex justify-between">
-            <span>Shipping:</span>
+            <span>الشحن:</span>
             <span>{formatCurrency(inv?.shipping_total || 0, currency)}</span>
           </div>
         )}
@@ -87,14 +87,14 @@ export function RetailReceipt({ invoice }) {
 
       {/* Grand Total */}
       <div className="flex justify-between items-center bg-gray-900 text-white p-4 rounded-lg mb-6">
-        <span className="text-lg font-bold">TOTAL</span>
+        <span className="text-lg font-bold">الإجمالي النهائي</span>
         <span className="text-2xl font-bold">{formatCurrency(inv?.grand_total || 0, currency)}</span>
       </div>
 
       {/* Payment Info */}
       {inv?.payment_info && (
         <div className="border border-dashed border-gray-300 rounded-lg p-4 mb-4">
-          <p className="text-xs font-bold mb-2">PAYMENT INFO:</p>
+          <p className="text-xs font-bold mb-2">بيانات الدفع:</p>
           <p className="text-xs whitespace-pre-wrap">{inv.payment_info}</p>
         </div>
       )}
@@ -102,15 +102,15 @@ export function RetailReceipt({ invoice }) {
       {/* Notes */}
       {inv?.notes && (
         <div className="mb-4">
-          <p className="text-xs font-bold mb-1">NOTES:</p>
+          <p className="text-xs font-bold mb-1">ملاحظات:</p>
           <p className="text-xs">{inv.notes}</p>
         </div>
       )}
 
       {/* Footer */}
       <div className="text-center border-t-2 border-dashed border-gray-300 pt-4">
-        <p className="text-xs">THANK YOU FOR YOUR BUSINESS!</p>
-        <p className="text-[10px] text-gray-400 mt-2">Powered by Branded Invoice</p>
+        <p className="text-xs">شكراً لتعاملكم معنا</p>
+        <p className="text-[10px] text-gray-400 mt-2">هذا النظام مخصص لتنظيم وتصميم وتصدير وطباعة الفواتير فقط، وليس نظام ربط ضريبي رسمي.</p>
       </div>
     </div>
   )

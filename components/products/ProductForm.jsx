@@ -46,7 +46,7 @@ export function ProductForm({ product, onSuccess, onCancel }) {
       } = await supabase.auth.getUser()
 
       if (userError) throw userError
-      if (!user) throw new Error('لازم تسجل دخول الأول')
+      if (!user) throw new Error('يجب تسجيل الدخول أولاً.')
 
       const productData = {
         ...data,
@@ -61,7 +61,7 @@ export function ProductForm({ product, onSuccess, onCancel }) {
           .eq('user_id', user.id)
 
         if (error) throw error
-        toast.success('المنتج اتحدث')
+        toast.success('تم تحديث المنتج.')
       } else {
         const { error } = await supabase.from('products').insert([
           {
@@ -71,11 +71,11 @@ export function ProductForm({ product, onSuccess, onCancel }) {
         ])
 
         if (error) throw error
-        toast.success('المنتج اتضاف')
+        toast.success('تمت إضافة المنتج.')
       }
       onSuccess?.()
     } catch (error) {
-      toast.error(getSupabaseErrorMessage(error, 'معرفناش نحفظ المنتج'))
+      toast.error(getSupabaseErrorMessage(error, 'تعذر حفظ المنتج.'))
     } finally {
       setLoading(false)
     }
