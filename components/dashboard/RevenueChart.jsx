@@ -10,7 +10,23 @@ import {
   Area,
   AreaChart,
 } from 'recharts'
+import { DollarSign } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils/currency'
+
+function formatYAxisValue(value, currency) {
+  const amount = Number(value) || 0
+
+  if (amount === 0) return '0'
+
+  if (Math.abs(amount) >= 1000) {
+    const compactValue = amount / 1000
+    return `${compactValue.toLocaleString('en-US', {
+      maximumFractionDigits: compactValue < 10 ? 1 : 0,
+    })}K`
+  }
+
+  return formatCurrency(Math.round(amount), currency)
+}
 
 const CustomTooltip = ({ active, payload, label, currency }) => {
   if (active && payload && payload.length) {
@@ -60,6 +76,7 @@ export function RevenueChart({ data, currency = 'EGP' }) {
 
     return months
   }, [data])
+  const hasPaidRevenue = chartData.some((month) => month.revenue > 0)
 
   return (
     <div className="bg-card rounded-2xl border border-border p-6">
@@ -71,6 +88,17 @@ export function RevenueChart({ data, currency = 'EGP' }) {
       </div>
 
       <div className="h-64 min-h-64 min-w-0">
+        {!hasPaidRevenue ? (
+          <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-background/40 px-6 text-center">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <DollarSign className="h-6 w-6" />
+            </div>
+            <p className="font-semibold">لا توجد إيرادات مدفوعة حتى الآن</p>
+            <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+              ستظهر الإيرادات هنا بعد تحويل الفواتير إلى مدفوعة.
+            </p>
+          </div>
+        ) : (
         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1} debounce={50}>
           <AreaChart data={chartData}>
             <defs>
@@ -92,7 +120,9 @@ export function RevenueChart({ data, currency = 'EGP' }) {
               fontSize={12}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+              width={72}
+              allowDecimals={false}
+              tickFormatter={(value) => formatYAxisValue(value, currency)}
             />
             <Tooltip content={<CustomTooltip currency={currency} />} />
             <Area
@@ -105,6 +135,7 @@ export function RevenueChart({ data, currency = 'EGP' }) {
             />
           </AreaChart>
         </ResponsiveContainer>
+        )}
       </div>
     </div>
   )
