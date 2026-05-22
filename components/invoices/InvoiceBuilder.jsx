@@ -289,6 +289,7 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
 
         setFormData(prev => ({ ...prev, ...invoiceData }))
         toast.success(statusChanged ? 'تم تحديث حالة الفاتورة.' : 'تم تحديث الفاتورة.')
+        router.replace(`/dashboard/invoices/${invoice.id}`)
       } else {
         // Create new
         const { data: newInvoice, error } = await supabase
@@ -328,7 +329,7 @@ export function InvoiceBuilder({ invoice, clients, brand, products, user }) {
         }
 
         toast.success('تم إنشاء الفاتورة.')
-        router.push(`/dashboard/invoices/${newInvoice.id}`)
+        router.replace(`/dashboard/invoices/${newInvoice.id}`)
       }
     } catch (error) {
       toast.error(getSupabaseErrorMessage(error, 'تعذر حفظ الفاتورة.'))
