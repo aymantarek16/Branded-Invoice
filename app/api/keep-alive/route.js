@@ -7,18 +7,13 @@ export const runtime = "nodejs";
 export async function GET() {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-    const supabaseKey =
-      process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json(
         {
           ok: false,
           message: "Missing Supabase environment variables",
-          hasUrl: Boolean(supabaseUrl),
-          hasKey: Boolean(supabaseKey),
         },
         { status: 500 }
       );
@@ -26,16 +21,39 @@ export async function GET() {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data, error } = await supabase.rpc(
-      "keep_branded_invoice_alive"
-    );
+    // قراءة العداد الحالي
+    const { data, error: fetchError } = await supabase
+      .from("system_heartbeat")
+      .select("ping_count")
+      .eq("id", 1)
+      .single();
 
-    if (error) {
+    if (fetchError) {
       return NextResponse.json(
         {
           ok: false,
-          message: "Supabase ping failed",
-          error: error.message,
+          message: "Failed to read heartbeat",
+          error: fetchError.message,
+        },
+        { status: 500 }
+      );
+    }
+
+    // تحديث آخر Ping والعداد
+    const { error: updateError } = await supabase
+      .from("system_heartbeat")
+      .update({
+        last_ping: new Date().toISOString(),
+        ping_count: (data?.ping_count ?? 0) + 1,
+      })
+      .eq("id", 1);
+
+    if (updateError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: "Failed to update heartbeat",
+          error: updateError.message,
         },
         { status: 500 }
       );
@@ -44,7 +62,7 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       message: "Hi Ayman, Branded Invoice is alive",
-      data,
+      ping_count: (data?.ping_count ?? 0) + 1,
       time: new Date().toISOString(),
     });
   } catch (error) {
